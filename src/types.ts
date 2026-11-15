@@ -11,6 +11,7 @@ export interface User {
   email: string;
   phone?: string;
   role: 'customer' | 'admin';
+  two_factor_enabled?: boolean;
   shipping_address?: ShippingAddress;
   style_dna?: {
     is_scanned: number;

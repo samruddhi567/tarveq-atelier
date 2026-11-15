@@ -151,6 +151,20 @@ export function initDatabase() {
     }
   }
 
+  // Safe schema migrations for users (Google Authenticator 2FA)
+  const userColumnsToAdd = [
+    'two_factor_secret TEXT',
+    'two_factor_enabled INTEGER DEFAULT 0'
+  ];
+
+  for (const col of userColumnsToAdd) {
+    try {
+      db.exec(`ALTER TABLE users ADD COLUMN ${col};`);
+    } catch {
+      // Column already exists, ignore
+    }
+  }
+
   seedData();
 }
 

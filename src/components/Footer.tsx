@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowRight, Instagram, MessageCircle, Shield, Check, Lock, BarChart3 } from 'lucide-react';
+import { ArrowRight, Instagram, MessageCircle, Shield, Check, Lock, BarChart3, MapPin, Navigation, Clock, Phone } from 'lucide-react';
 
 interface FooterProps {
   onNavClick: (tab: any) => void;
@@ -42,6 +42,78 @@ export const Footer: React.FC<FooterProps> = ({
     <footer className="bg-charcoal text-[#F8F4EC] pt-16 pb-12 border-t border-charcoal-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
+        {/* Atelier Studio & Interactive Location Map */}
+        <div id="atelier-map" className="pb-16 mb-14 border-b border-charcoal-border/70 scroll-mt-24">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            
+            {/* Left Location & Appointment Info */}
+            <div className="lg:col-span-5 space-y-4">
+              <div className="inline-flex items-center space-x-2 bg-gold/15 text-gold px-3.5 py-1 rounded-full text-xs font-semibold uppercase tracking-widest border border-gold/30">
+                <MapPin className="w-3.5 h-3.5" />
+                <span>Flagship Atelier & Fitting Studio</span>
+              </div>
+
+              <h3 className="font-serif text-3xl sm:text-4xl font-medium text-white leading-tight">
+                Visit Our Bengaluru Atelier
+              </h3>
+
+              <p className="text-sm text-[#F8F4EC]/80 leading-relaxed font-sans">
+                Experience in-person bespoke draping, body proportion calibration, and touch our zero-sheer double poplins and breathable cambrics firsthand.
+              </p>
+
+              <div className="space-y-2.5 text-xs text-[#F8F4EC]/80 font-sans pt-1">
+                <div className="flex items-start space-x-2.5">
+                  <MapPin className="w-4 h-4 text-gold flex-shrink-0 mt-0.5" />
+                  <span>AURA Atelier Studio, 4th Floor, 100ft Road, HAL 2nd Stage, Indiranagar, Bengaluru, Karnataka 560038</span>
+                </div>
+                <div className="flex items-center space-x-2.5">
+                  <Clock className="w-4 h-4 text-gold flex-shrink-0" />
+                  <span>Monday – Saturday: 10:30 AM – 8:30 PM | Sunday: 11:00 AM – 7:00 PM</span>
+                </div>
+                <div className="flex items-center space-x-2.5">
+                  <Phone className="w-4 h-4 text-gold flex-shrink-0" />
+                  <span>Direct Concierge: +91 9307859693 / +91 8809271583</span>
+                </div>
+              </div>
+
+              <div className="pt-2 flex flex-wrap gap-3">
+                <a
+                  href="https://maps.google.com/?q=100ft+Road+Indiranagar+Bengaluru"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="bg-gold hover:bg-gold-hover text-charcoal font-sans text-xs font-semibold px-5 py-2.5 rounded-full transition flex items-center space-x-2 shadow-sm"
+                >
+                  <Navigation className="w-3.5 h-3.5" />
+                  <span>Open in Google Maps</span>
+                </a>
+
+                <a
+                  href="https://wa.me/919307859693?text=Hello%20TARVEQ%20Atelier%2C%20I%20would%20like%20to%20book%20an%20in-person%20fitting%20appointment%20at%20your%20Indiranagar%20studio."
+                  target="_blank"
+                  rel="noreferrer"
+                  className="bg-white/10 hover:bg-white/20 text-white border border-white/20 font-sans text-xs font-medium px-5 py-2.5 rounded-full transition flex items-center space-x-2"
+                >
+                  <MessageCircle className="w-3.5 h-3.5 text-sage" />
+                  <span>Book Fitting on WhatsApp</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Right Interactive Embedded Google Map */}
+            <div className="lg:col-span-7 rounded-3xl overflow-hidden border border-gold/30 shadow-2xl relative h-[320px] sm:h-[380px] bg-charcoal-light">
+              <iframe
+                title="TARVEQ Atelier Location Map"
+                src="https://maps.google.com/maps?q=100ft%20Road,%20Indiranagar,%20Bengaluru,%20Karnataka%20560038&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                className="w-full h-full border-0 filter contrast-105"
+                loading="lazy"
+                allowFullScreen
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+
+          </div>
+        </div>
+
         {/* Main 4-Column Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12 pb-14 border-b border-charcoal-border/70">
           

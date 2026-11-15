@@ -17,6 +17,12 @@ import {
   ADMIN_PHONE_1,
   ADMIN_PHONE_2
 } from './services/whatsappNotificationService.js';
+import {
+  generateSecret,
+  computeTOTP,
+  verifyTOTP,
+  getOtpAuthUrl
+} from './services/totpService.js';
 
 dotenv.config();
 
@@ -277,12 +283,28 @@ app.post('/api/auth/login', (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
+    // Google Authenticator 2FA Gate
+    if (row.two_factor_enabled === 1) {
+      const tempToken = jwt.sign(
+        { id: row.id, email: row.email, role: row.role, name: row.name, stage: '2fa' },
+        JWT_SECRET,
+        { expiresIn: '5m' }
+      );
+      return res.json({
+        success: true,
+        requires2FA: true,
+        tempToken,
+        message: 'Google Authenticator 2FA verification required'
+      });
+    }
+
     const user = {
       id: row.id,
       name: row.name,
       email: row.email,
       phone: row.phone,
       role: row.role,
+      two_factor_enabled: Boolean(row.two_factor_enabled),
       shipping_address: JSON.parse(row.shipping_address || '{}'),
       style_dna: JSON.parse(row.style_dna || '{}'),
       saved_wardrobe_vault: JSON.parse(row.saved_wardrobe_vault || '[]'),
@@ -293,6 +315,135 @@ app.post('/api/auth/login', (req: Request, res: Response) => {
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Authentication failed' });
+  }
+});
+
+// Login 2FA Verification Endpoint
+app.post('/api/auth/login/2fa', (req: Request, res: Response) => {
+  try {
+    const { tempToken, code } = req.body;
+    if (!tempToken || !code) {
+      return res.status(400).json({ error: 'Temporary token and 6-digit code are required' });
+    }
+
+    let decoded: any;
+    try {
+      decoded = jwt.verify(tempToken, JWT_SECRET);
+    } catch {
+      return res.status(401).json({ error: '2FA session expired. Please log in again.' });
+    }
+
+    if (decoded.stage !== '2fa') {
+      return res.status(401).json({ error: 'Invalid 2FA session' });
+    }
+
+    const row = db.prepare('SELECT * FROM users WHERE id = ?').get(decoded.id) as any;
+    if (!row || !row.two_factor_secret) {
+      return res.status(400).json({ error: 'Google Authenticator is not configured for this account' });
+    }
+
+    const isValid = verifyTOTP(String(code).trim(), row.two_factor_secret);
+    if (!isValid) {
+      return res.status(401).json({ error: 'Invalid Google Authenticator code. Check the 6-digit code and try again.' });
+    }
+
+    const user = {
+      id: row.id,
+      name: row.name,
+      email: row.email,
+      phone: row.phone,
+      role: row.role,
+      two_factor_enabled: true,
+      shipping_address: JSON.parse(row.shipping_address || '{}'),
+      style_dna: JSON.parse(row.style_dna || '{}'),
+      saved_wardrobe_vault: JSON.parse(row.saved_wardrobe_vault || '[]'),
+    };
+
+    const token = jwt.sign({ id: user.id, email: user.email, role: user.role, name: user.name }, JWT_SECRET, { expiresIn: '7d' });
+    res.json({ success: true, token, user });
+  } catch (error) {
+    console.error('2FA verification error:', error);
+    res.status(500).json({ error: 'Failed to verify Google Authenticator code' });
+  }
+});
+
+// 2FA Management Endpoints (Generate QR Code & Secret)
+app.post('/api/auth/2fa/generate', authenticateToken, (req: AuthRequest, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+    const secret = generateSecret();
+    const otpauthUrl = getOtpAuthUrl(user.email, secret, 'TARVEQ Atelier');
+    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(otpauthUrl)}`;
+
+    // Store the pending secret on user
+    db.prepare('UPDATE users SET two_factor_secret = ? WHERE id = ?').run(secret, user.id);
+
+    res.json({
+      success: true,
+      secret,
+      otpauthUrl,
+      qrCodeUrl,
+      issuer: 'TARVEQ Atelier',
+      account: user.email,
+    });
+  } catch (error) {
+    console.error('Generate 2FA error:', error);
+    res.status(500).json({ error: 'Failed to generate 2FA secret' });
+  }
+});
+
+// 2FA Enable Endpoint (Verify initial code and set active)
+app.post('/api/auth/2fa/enable', authenticateToken, (req: AuthRequest, res: Response) => {
+  try {
+    const user = req.user;
+    const { token } = req.body;
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+    if (!token) return res.status(400).json({ error: '6-digit verification code is required' });
+
+    const row = db.prepare('SELECT two_factor_secret FROM users WHERE id = ?').get(user.id) as any;
+    if (!row || !row.two_factor_secret) {
+      return res.status(400).json({ error: 'No 2FA setup found. Please generate a QR code first.' });
+    }
+
+    const isValid = verifyTOTP(String(token).trim(), row.two_factor_secret);
+    if (!isValid) {
+      return res.status(400).json({ error: 'Incorrect 6-digit code. Please verify the time on your phone and try again.' });
+    }
+
+    db.prepare('UPDATE users SET two_factor_enabled = 1 WHERE id = ?').run(user.id);
+    res.json({ success: true, message: 'Google Authenticator 2FA activated successfully!' });
+  } catch (error) {
+    console.error('Enable 2FA error:', error);
+    res.status(500).json({ error: 'Failed to enable Google Authenticator' });
+  }
+});
+
+// 2FA Disable Endpoint
+app.post('/api/auth/2fa/disable', authenticateToken, (req: AuthRequest, res: Response) => {
+  try {
+    const user = req.user;
+    const { token } = req.body;
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+    const row = db.prepare('SELECT two_factor_secret FROM users WHERE id = ?').get(user.id) as any;
+    if (!row || !row.two_factor_secret) {
+      return res.status(400).json({ error: '2FA is not active' });
+    }
+
+    if (token) {
+      const isValid = verifyTOTP(String(token).trim(), row.two_factor_secret);
+      if (!isValid) {
+        return res.status(400).json({ error: 'Invalid Google Authenticator code.' });
+      }
+    }
+
+    db.prepare('UPDATE users SET two_factor_enabled = 0, two_factor_secret = NULL WHERE id = ?').run(user.id);
+    res.json({ success: true, message: 'Google Authenticator 2FA has been disabled.' });
+  } catch (error) {
+    console.error('Disable 2FA error:', error);
+    res.status(500).json({ error: 'Failed to disable 2FA' });
   }
 });
 
@@ -340,6 +491,7 @@ app.get('/api/user', (req: Request, res: Response) => {
         email: row.email,
         phone: row.phone,
         role: row.role,
+        two_factor_enabled: Boolean(row.two_factor_enabled),
         shipping_address: JSON.parse(row.shipping_address || '{}'),
         style_dna: JSON.parse(row.style_dna || '{}'),
         saved_wardrobe_vault: JSON.parse(row.saved_wardrobe_vault || '[]'),
@@ -391,6 +543,7 @@ app.get('/api/auth/me', (req: Request, res: Response) => {
           email: row.email,
           phone: row.phone,
           role: row.role,
+          two_factor_enabled: Boolean(row.two_factor_enabled),
           shipping_address: JSON.parse(row.shipping_address || '{}'),
           style_dna: JSON.parse(row.style_dna || '{}'),
           saved_wardrobe_vault: JSON.parse(row.saved_wardrobe_vault || '[]'),

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AnnouncementBar } from './AnnouncementBar';
-import { Search, Heart, User as UserIcon, ShoppingBag, Menu, X, ShieldCheck, Sparkles, ChevronRight } from 'lucide-react';
+import { Search, Heart, User as UserIcon, ShoppingBag, Menu, X, ShieldCheck, Sparkles, ChevronRight, MapPin } from 'lucide-react';
 import { User as UserType } from '../types';
 
 export type ActiveNavTab = 'home' | 'shop-all' | 'shop-by-fit' | 'style-studio' | 'wardrobe' | 'new-arrivals' | 'orders';
@@ -186,6 +186,16 @@ export const Header: React.FC<HeaderProps> = ({
                 <span className="absolute bottom-0 left-0 w-full h-[2px] bg-burgundy rounded-full" />
               )}
             </button>
+
+            {/* Atelier Studio Map Link */}
+            <a
+              href="#atelier-map"
+              className="transition py-1 relative flex items-center space-x-1 text-charcoal hover:text-burgundy"
+              title="Visit our physical flagship studio in Indiranagar, Bengaluru"
+            >
+              <MapPin className="w-3.5 h-3.5 text-gold" />
+              <span>Atelier Map</span>
+            </a>
           </nav>
 
           {/* Right Utility Icons (Search, Wishlist, Account, Cart) */}
@@ -353,6 +363,19 @@ export const Header: React.FC<HeaderProps> = ({
                 3-Sec Wizard
               </span>
             </button>
+
+            {/* Mobile Atelier Map Link */}
+            <a
+              href="#atelier-map"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center justify-between text-left py-2 border-b border-beige/60 text-charcoal hover:text-burgundy"
+            >
+              <div className="flex items-center space-x-2">
+                <MapPin className="w-4 h-4 text-gold" />
+                <span>Visit Bengaluru Atelier (Map)</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-charcoal-muted" />
+            </a>
 
             {/* Quick WhatsApp Concierge Button */}
             <a

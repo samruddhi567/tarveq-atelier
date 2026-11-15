@@ -1,5 +1,23 @@
-import React, { useState } from 'react';
-import { X, User as UserIcon, Ruler, Palette, Package, MapPin, Heart, LogOut, ShieldCheck, Check, Truck } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import {
+  X,
+  User as UserIcon,
+  Ruler,
+  Palette,
+  Package,
+  MapPin,
+  Heart,
+  LogOut,
+  ShieldCheck,
+  Check,
+  Truck,
+  Shield,
+  KeyRound,
+  QrCode,
+  Smartphone,
+  Copy,
+  AlertCircle
+} from 'lucide-react';
 import { User, Order } from '../types';
 
 interface UserProfileModalProps {
@@ -23,9 +41,119 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   onOpenColourStudio,
   onTrackOrder,
 }) => {
-  const [activeTab, setActiveTab] = useState<'profile' | 'fit' | 'orders' | 'addresses'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'fit' | 'orders' | 'addresses' | 'security'>('profile');
+
+  // Google Authenticator (2FA) State
+  const [is2FAEnabled, setIs2FAEnabled] = useState<boolean>(Boolean(user?.two_factor_enabled));
+  const [setupStep, setSetupStep] = useState<'idle' | 'generating' | 'qr_ready' | 'verifying'>('idle');
+  const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
+  const [secretKey, setSecretKey] = useState<string | null>(null);
+  const [otpauthUrl, setOtpauthUrl] = useState<string | null>(null);
+  const [verificationCode, setVerificationCode] = useState<string>('');
+  const [securityError, setSecurityError] = useState<string | null>(null);
+  const [securitySuccess, setSecuritySuccess] = useState<string | null>(null);
+  const [copiedKey, setCopiedKey] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (user) {
+      setIs2FAEnabled(Boolean(user.two_factor_enabled));
+    }
+  }, [user]);
 
   if (!isOpen || !user) return null;
+
+  // Step 1: Request 2FA Setup QR Code
+  const handleStart2FASetup = async () => {
+    setSetupStep('generating');
+    setSecurityError(null);
+    setSecuritySuccess(null);
+    try {
+      const token = localStorage.getItem('aura_token');
+      const res = await fetch('/api/auth/2fa/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token ? `Bearer ${token}` : '',
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to start 2FA setup');
+
+      setSecretKey(data.secret);
+      setQrCodeUrl(data.qrCodeUrl);
+      setOtpauthUrl(data.otpauthUrl);
+      setSetupStep('qr_ready');
+    } catch (err: any) {
+      setSecurityError(err.message);
+      setSetupStep('idle');
+    }
+  };
+
+  // Step 2: Confirm 6-digit Code from Google Authenticator App
+  const handleVerify2FACode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (verificationCode.length !== 6) {
+      setSecurityError('Please enter the 6-digit code shown in Google Authenticator');
+      return;
+    }
+
+    setSetupStep('verifying');
+    setSecurityError(null);
+    try {
+      const token = localStorage.getItem('aura_token');
+      const res = await fetch('/api/auth/2fa/enable', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token ? `Bearer ${token}` : '',
+        },
+        body: JSON.stringify({ token: verificationCode }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to verify 2FA code');
+
+      setIs2FAEnabled(true);
+      setSetupStep('idle');
+      setSecuritySuccess('Google Authenticator 2FA activated! Your account is now protected.');
+      setVerificationCode('');
+    } catch (err: any) {
+      setSecurityError(err.message);
+      setSetupStep('qr_ready');
+    }
+  };
+
+  // Step 3: Disable 2FA
+  const handleDisable2FA = async () => {
+    if (!window.confirm('Are you sure you want to disable Google Authenticator two-factor authentication?')) {
+      return;
+    }
+
+    setSecurityError(null);
+    try {
+      const token = localStorage.getItem('aura_token');
+      const res = await fetch('/api/auth/2fa/disable', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token ? `Bearer ${token}` : '',
+        },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to disable 2FA');
+
+      setIs2FAEnabled(false);
+      setSecuritySuccess('Google Authenticator 2FA has been disabled.');
+    } catch (err: any) {
+      setSecurityError(err.message);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(true);
+    setTimeout(() => setCopiedKey(false), 2000);
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-charcoal/70 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
@@ -38,7 +166,15 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               {user.name.charAt(0)}
             </div>
             <div>
-              <h3 className="font-serif text-2xl font-medium text-charcoal">{user.name}</h3>
+              <div className="flex items-center space-x-2">
+                <h3 className="font-serif text-2xl font-medium text-charcoal">{user.name}</h3>
+                {is2FAEnabled && (
+                  <span className="bg-sage-light text-sage text-[10px] font-sans font-bold px-2 py-0.5 rounded-full flex items-center space-x-1 border border-sage/30">
+                    <ShieldCheck className="w-3 h-3" />
+                    <span>2FA Protected</span>
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-charcoal-muted font-sans">{user.email}</p>
             </div>
           </div>
@@ -49,26 +185,35 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-beige-border text-xs font-sans font-medium bg-beige/20 px-6">
+        <div className="flex border-b border-beige-border text-xs font-sans font-medium bg-beige/20 px-6 overflow-x-auto scrollbar-hide">
           <button
             onClick={() => setActiveTab('profile')}
-            className={`py-3 px-3 border-b-2 transition ${
+            className={`py-3 px-3 border-b-2 transition whitespace-nowrap ${
               activeTab === 'profile' ? 'border-burgundy text-burgundy font-bold' : 'border-transparent text-charcoal-muted'
             }`}
           >
             Account Details
           </button>
           <button
+            onClick={() => setActiveTab('security')}
+            className={`py-3 px-3 border-b-2 transition whitespace-nowrap flex items-center space-x-1.5 ${
+              activeTab === 'security' ? 'border-burgundy text-burgundy font-bold' : 'border-transparent text-charcoal-muted'
+            }`}
+          >
+            <Shield className="w-3.5 h-3.5 text-gold" />
+            <span>Google Authenticator (2FA)</span>
+          </button>
+          <button
             onClick={() => setActiveTab('fit')}
-            className={`py-3 px-3 border-b-2 transition ${
+            className={`py-3 px-3 border-b-2 transition whitespace-nowrap ${
               activeTab === 'fit' ? 'border-burgundy text-burgundy font-bold' : 'border-transparent text-charcoal-muted'
             }`}
           >
-            Saved Measurements & Fit
+            Saved Fit
           </button>
           <button
             onClick={() => setActiveTab('orders')}
-            className={`py-3 px-3 border-b-2 transition ${
+            className={`py-3 px-3 border-b-2 transition whitespace-nowrap ${
               activeTab === 'orders' ? 'border-burgundy text-burgundy font-bold' : 'border-transparent text-charcoal-muted'
             }`}
           >
@@ -76,7 +221,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('addresses')}
-            className={`py-3 px-3 border-b-2 transition ${
+            className={`py-3 px-3 border-b-2 transition whitespace-nowrap ${
               activeTab === 'addresses' ? 'border-burgundy text-burgundy font-bold' : 'border-transparent text-charcoal-muted'
             }`}
           >
@@ -103,6 +248,12 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   <span className="text-charcoal-muted">Role</span>
                   <span className="font-semibold text-burgundy uppercase">{user.role}</span>
                 </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-charcoal-muted">Two-Factor Authentication</span>
+                  <span className={`font-semibold ${is2FAEnabled ? 'text-sage' : 'text-charcoal-muted'}`}>
+                    {is2FAEnabled ? '● Enabled via Google Authenticator' : '○ Not Enabled'}
+                  </span>
+                </div>
               </div>
 
               <div className="pt-2">
@@ -117,7 +268,193 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             </div>
           )}
 
-          {/* TAB 2: Saved Fit & Measurements */}
+          {/* TAB 2: GOOGLE AUTHENTICATOR (2FA) */}
+          {activeTab === 'security' && (
+            <div className="space-y-5">
+              
+              {/* Status Banner */}
+              <div className={`p-4 rounded-2xl border flex items-start space-x-3.5 ${
+                is2FAEnabled ? 'bg-sage-light/60 border-sage/40' : 'bg-gold-light/40 border-gold/40'
+              }`}>
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  is2FAEnabled ? 'bg-sage text-white' : 'bg-gold text-white'
+                }`}>
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="font-serif text-base font-semibold text-charcoal">
+                    {is2FAEnabled ? 'Google Authenticator is Active' : 'Two-Factor Authentication (TOTP)'}
+                  </h4>
+                  <p className="text-xs text-charcoal-muted leading-relaxed">
+                    {is2FAEnabled
+                      ? 'Your TARVEQ Atelier account is protected. Every time you log in, you will be prompted for a 6-digit code from Google Authenticator.'
+                      : 'Protect your orders, measurements, and customer data by requiring a 6-digit code from Google Authenticator on login.'}
+                  </p>
+                </div>
+              </div>
+
+              {securitySuccess && (
+                <div className="p-3 bg-sage-light text-sage text-xs rounded-xl flex items-center space-x-2 border border-sage/40">
+                  <Check className="w-4 h-4 flex-shrink-0" />
+                  <span>{securitySuccess}</span>
+                </div>
+              )}
+
+              {securityError && (
+                <div className="p-3 bg-burgundy-light text-burgundy text-xs rounded-xl flex items-center space-x-2 border border-burgundy/40">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  <span>{securityError}</span>
+                </div>
+              )}
+
+              {/* Action when 2FA is already active */}
+              {is2FAEnabled && (
+                <div className="bg-white p-5 rounded-2xl border border-beige-border space-y-4">
+                  <div className="flex items-center space-x-2 text-xs text-charcoal font-medium">
+                    <Smartphone className="w-4 h-4 text-sage" />
+                    <span>Connected to: Google Authenticator (iOS / Android)</span>
+                  </div>
+
+                  <p className="text-xs text-charcoal-muted">
+                    If you change your device or need to re-link Google Authenticator, you can disable 2FA here and re-enable it on your new phone.
+                  </p>
+
+                  <button
+                    onClick={handleDisable2FA}
+                    className="bg-white hover:bg-beige/40 text-charcoal-muted hover:text-burgundy border border-beige-border text-xs font-semibold py-2 px-4 rounded-full transition"
+                  >
+                    Disable Google Authenticator
+                  </button>
+                </div>
+              )}
+
+              {/* Setup Flow when 2FA is NOT active */}
+              {!is2FAEnabled && (
+                <div className="bg-white p-5 rounded-2xl border border-beige-border space-y-4">
+                  
+                  {setupStep === 'idle' && (
+                    <div className="space-y-4 text-center py-4">
+                      <div className="w-14 h-14 bg-gold-light rounded-full mx-auto flex items-center justify-center text-gold">
+                        <KeyRound className="w-7 h-7" />
+                      </div>
+                      <div className="space-y-1">
+                        <h5 className="font-serif text-lg font-medium text-charcoal">
+                          Set up Google Authenticator
+                        </h5>
+                        <p className="text-xs text-charcoal-muted max-w-sm mx-auto">
+                          Works with Google Authenticator, Authy, 1Password, or any standard TOTP authenticator app.
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={handleStart2FASetup}
+                        className="bg-burgundy hover:bg-burgundy-hover text-white text-xs font-semibold px-6 py-3 rounded-full transition shadow-md border border-gold/30"
+                      >
+                        Generate Setup QR Code
+                      </button>
+                    </div>
+                  )}
+
+                  {setupStep === 'generating' && (
+                    <div className="text-center py-8 text-xs text-charcoal-muted">
+                      Generating secure 160-bit key...
+                    </div>
+                  )}
+
+                  {(setupStep === 'qr_ready' || setupStep === 'verifying') && qrCodeUrl && (
+                    <div className="space-y-5">
+                      
+                      {/* Step Instructions */}
+                      <div className="space-y-2 border-b border-beige-border pb-4">
+                        <p className="text-xs font-bold text-burgundy uppercase tracking-wider">
+                          Step 1: Scan with Google Authenticator
+                        </p>
+                        <p className="text-xs text-charcoal-muted">
+                          Open the <strong>Google Authenticator</strong> app on your mobile device, tap the <strong>+</strong> button, and choose <strong>Scan a QR code</strong>:
+                        </p>
+                      </div>
+
+                      {/* QR Code Display */}
+                      <div className="flex flex-col sm:flex-row items-center gap-5 justify-center py-2">
+                        <div className="p-3 bg-white border border-gold/40 rounded-2xl shadow-sm">
+                          <img
+                            src={qrCodeUrl}
+                            alt="Google Authenticator QR Code"
+                            className="w-48 h-48 object-contain"
+                          />
+                        </div>
+
+                        {/* Manual entry secret */}
+                        <div className="space-y-2 text-xs max-w-xs text-center sm:text-left">
+                          <p className="text-charcoal-muted font-medium">
+                            Can't scan the QR code? Enter this secret key manually:
+                          </p>
+                          <div className="flex items-center space-x-1.5 bg-beige/40 p-2 rounded-xl border border-beige-border">
+                            <code className="font-mono text-[11px] text-charcoal font-bold tracking-wider select-all break-all">
+                              {secretKey}
+                            </code>
+                            <button
+                              onClick={() => secretKey && copyToClipboard(secretKey)}
+                              className="p-1 hover:bg-beige rounded text-charcoal transition"
+                              title="Copy key"
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                          {copiedKey && <span className="text-[10px] text-sage font-bold">✓ Secret key copied!</span>}
+                        </div>
+                      </div>
+
+                      {/* Verification Code Form */}
+                      <form onSubmit={handleVerify2FACode} className="space-y-3 pt-3 border-t border-beige-border">
+                        <div className="space-y-1">
+                          <label className="text-xs font-bold text-burgundy uppercase tracking-wider block">
+                            Step 2: Enter 6-digit code from Google Authenticator
+                          </label>
+                          <p className="text-xs text-charcoal-muted">
+                            Enter the 6-digit code currently displayed in the app for <strong>TARVEQ Atelier</strong> to verify setup:
+                          </p>
+                        </div>
+
+                        <div className="flex items-center space-x-3">
+                          <input
+                            type="text"
+                            maxLength={6}
+                            value={verificationCode}
+                            onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}
+                            placeholder="123456"
+                            className="w-40 text-center font-mono text-xl tracking-[0.3em] font-bold py-2.5 px-3 bg-[#F8F4EC] border border-charcoal/20 focus:border-burgundy rounded-xl focus:outline-none"
+                            autoFocus
+                          />
+
+                          <button
+                            type="submit"
+                            disabled={setupStep === 'verifying' || verificationCode.length !== 6}
+                            className="bg-burgundy hover:bg-burgundy-hover disabled:opacity-50 text-white text-xs font-semibold px-5 py-3 rounded-full transition shadow-md"
+                          >
+                            {setupStep === 'verifying' ? 'Verifying...' : 'Activate 2FA'}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setSetupStep('idle')}
+                            className="text-xs text-charcoal-muted hover:text-charcoal underline"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+
+                    </div>
+                  )}
+
+                </div>
+              )}
+
+            </div>
+          )}
+
+          {/* TAB 3: Saved Fit & Measurements */}
           {activeTab === 'fit' && (
             <div className="space-y-4">
               {user.style_dna && user.style_dna.is_scanned === 1 ? (
@@ -185,7 +522,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             </div>
           )}
 
-          {/* TAB 3: Orders */}
+          {/* TAB 4: Orders */}
           {activeTab === 'orders' && (
             <div className="space-y-4">
               {orders.length === 0 ? (
@@ -236,7 +573,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             </div>
           )}
 
-          {/* TAB 4: Addresses */}
+          {/* TAB 5: Addresses */}
           {activeTab === 'addresses' && (
             <div className="bg-white p-5 rounded-2xl border border-beige-border space-y-3 text-xs">
               <div className="flex items-center justify-between pb-2 border-b border-beige-border">
