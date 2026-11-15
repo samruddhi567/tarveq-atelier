@@ -110,6 +110,10 @@ export const App: React.FC = () => {
       const data = await res.json();
       if (data.success && data.user) {
         setCurrentUser(data.user);
+        if (data.token && !currentToken) {
+          localStorage.setItem('aura_token', data.token);
+          setToken(data.token);
+        }
       }
     } catch (err) {
       console.error('Error fetching auth user:', err);
