@@ -512,27 +512,27 @@ export const App: React.FC = () => {
                   {[
                     {
                       label: 'Co-ord Sets',
-                      img: 'https://images.unsplash.com/photo-1618932260643-eee4a2f652a6?auto=format&fit=crop&w=300&q=80',
+                      img: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=400&q=80',
                       tab: 'shop-all',
                     },
                     {
                       label: 'Tunics',
-                      img: 'https://images.unsplash.com/photo-1587316205589-54b66fc80563?auto=format&fit=crop&w=300&q=80',
+                      img: 'https://images.unsplash.com/photo-1551803091-e20673f15770?auto=format&fit=crop&w=400&q=80',
                       tab: 'shop-all',
                     },
                     {
                       label: 'Shirts',
-                      img: 'https://images.unsplash.com/photo-1598032895397-b9472444bf93?auto=format&fit=crop&w=300&q=80',
+                      img: 'https://images.unsplash.com/photo-1598032895397-b9472444bf93?auto=format&fit=crop&w=400&q=80',
                       tab: 'shop-all',
                     },
                     {
                       label: 'Trousers',
-                      img: 'https://images.unsplash.com/photo-1594938298603-c8148c4b5fca?auto=format&fit=crop&w=300&q=80',
+                      img: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=400&q=80',
                       tab: 'shop-all',
                     },
                     {
                       label: 'New Arrivals',
-                      img: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=300&q=80',
+                      img: 'https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=400&q=80',
                       tab: 'new-arrivals',
                     },
                   ].map((cat) => (
