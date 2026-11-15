@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Build output (Railway will build this itself)
+dist/
+
+# Environment secrets — NEVER commit this
+.env
+
+# SQLite DB files (Railway uses a persistent volume)
+*.db
+*.db-shm
+*.db-wal
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+*.log
+
+# Python
+__pycache__/
+*.pyc
+generate_deck.py

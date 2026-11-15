@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AURA ATELIER — Seed Investor Pitch Deck (7 Slides)</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Pitch Deck Presentation System */
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      overflow: hidden;
+      background: #FAF8F5;
+      font-family: var(--font-sans);
+      color: var(--text-espresso);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top deck control bar */
+    .deck-top-bar {
+      padding: 1rem 2.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-delicate);
+      background: rgba(250, 248, 245, 0.95);
+      backdrop-filter: blur(10px);
+      z-index: 100;
+    }
+
+    .deck-brand {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .deck-badge-seed {
+      font-size: 0.72rem;
+      padding: 0.25rem 0.75rem;
+      background: rgba(217, 119, 87, 0.15);
+      color: var(--accent-terracotta);
+      border-radius: 999px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .deck-progress-track {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      background: var(--accent-terracotta);
+      transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Slides viewport */
+    .deck-viewport {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem 3.5rem;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 1.5rem 3.5rem;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(24px) scale(0.98);
+      transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 1320px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(232, 165, 152, 0.35);
+      border-radius: 28px;
+      padding: 3rem 4rem;
+      box-shadow: 0 25px 60px -15px rgba(43, 30, 26, 0.08);
+      overflow-y: auto;
+    }
+
+    .slide.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0) scale(1);
+    }
+
+    .slide-eyebrow {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--accent-terracotta);
+      margin-bottom: 0.4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .slide-title {
+      font-family: var(--font-serif-display);
+      font-size: 2.8rem;
+      line-height: 1.15;
+      color: var(--text-espresso);
+      margin-bottom: 0.75rem;
+    }
+
+    .slide-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-espresso-muted);
+      line-height: 1.55;
+      max-width: 840px;
+      margin-bottom: 1.75rem;
+    }
+
+    .deck-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.75rem;
+    }
+
+    .deck-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+    }
+
+    .deck-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border-delicate);
+      border-radius: 20px;
+      padding: 1.75rem;
+      box-shadow: 0 10px 25px -10px rgba(43, 30, 26, 0.05);
+    }
+
+    .deck-card:hover {
+      border-color: var(--accent-terracotta);
+      box-shadow: 0 15px 35px -10px rgba(217, 119, 87, 0.15);
+    }
+
+    .card-metric-num {
+      font-family: var(--font-serif-display);
+      font-size: 2.6rem;
+      font-weight: 700;
+      color: var(--accent-terracotta);
+      line-height: 1;
+      margin-bottom: 0.35rem;
+    }
+
+    .card-metric-label {
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-espresso-muted);
+      font-weight: 700;
+      margin-bottom: 0.65rem;
+    }
+
+    .deck-bottom-bar {
+      padding: 1rem 2.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(250, 248, 245, 0.95);
+      border-top: 1px solid var(--border-delicate);
+      z-index: 100;
+    }
+
+    .deck-nav-btn {
+      padding: 0.55rem 1.2rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-delicate);
+      background: #FFFFFF;
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--text-espresso);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      text-decoration: none;
+    }
+
+    .deck-nav-btn:hover {
+      border-color: var(--accent-terracotta);
+      background: var(--bg-cream-soft);
+      transform: translateY(-1px);
+    }
+
+    .deck-dots {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .deck-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(43, 30, 26, 0.15);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .deck-dot.active {
+      width: 32px;
+      border-radius: 999px;
+      background: var(--accent-terracotta);
+    }
+
+    .deck-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      text-align: left;
+    }
+
+    .deck-table th {
+      padding: 0.85rem 1rem;
+      border-bottom: 2px solid var(--border-delicate);
+      font-weight: 700;
+      color: var(--text-espresso);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .deck-table td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-espresso-muted);
+    }
+
+    .highlight-cell {
+      font-weight: 700;
+      color: var(--accent-terracotta) !important;
+      background: rgba(217, 119, 87, 0.06);
+    }
+
+    .speaker-notes-box {
+      margin-top: 1.25rem;
+      background: rgba(43, 30, 26, 0.04);
+      border-left: 3px solid var(--accent-terracotta);
+      padding: 0.75rem 1.25rem;
+      border-radius: 0 12px 12px 0;
+      font-size: 0.85rem;
+      color: var(--text-espresso-muted);
+      line-height: 1.5;
+    }
+
+    .btn-download-ppt {
+      background: var(--accent-terracotta);
+      color: #FFFFFF !important;
+      border-color: var(--accent-terracotta);
+      box-shadow: 0 4px 15px rgba(217, 119, 87, 0.35);
+    }
+
+    .btn-download-ppt:hover {
+      background: #C85A32;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <header class="deck-top-bar">
+    <div class="deck-brand">
+      <a href="index.html" class="brand-logo" style="text-decoration: none;">
+        <span class="brand-logo-text" style="font-size: 1.4rem;">AURA</span>
+        <span class="brand-logo-sub" style="font-size: 0.55rem;">AI ATELIER</span>
+      </a>
+      <span class="deck-badge-seed">7-Slide Investor Deck • $2.5M Seed</span>
+    </div>
+
+    <div style="display: flex; gap: 0.75rem; align-items: center;">
+      <!-- Direct PPT Download Link -->
+      <a href="AURA_Atelier_Pitch_Deck.pptx" download="AURA_Atelier_Pitch_Deck.pptx" class="deck-nav-btn btn-download-ppt">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        <span>Download PPT (.pptx)</span>
+      </a>
+
+      <a href="index.html" target="_blank" class="deck-nav-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+        <span>Live Web App ↗</span>
+      </a>
+
+      <button class="deck-nav-btn" onclick="toggleNotes()">
+        <span>Notes (N)</span>
+      </button>
+
+      <button class="deck-nav-btn" onclick="toggleFullScreen()">
+        <span>Fullscreen (F)</span>
+      </button>
+    </div>
+
+    <div class="deck-progress-track" id="deckProgressBar" style="width: 14.28%;"></div>
+  </header>
+
+  <!-- Viewport for 7 Slides -->
+  <main class="deck-viewport" id="deckViewport">
+
+    <!-- SLIDE 1: Who I Am & My Team -->
+    <section class="slide active" id="slide-1">
+      <div class="slide-eyebrow">SLIDE 01 • WHO WE ARE</div>
+      <h1 class="slide-title">The Founding Team: Sartorial &amp; AI Visionaries</h1>
+      <p class="slide-subtitle">Combining luxury fashion e-commerce leadership with world-class computer vision neural rendering.</p>
+
+      <div class="deck-grid-3">
+        <div class="deck-card" style="border-top: 4px solid var(--accent-terracotta);">
+          <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; color:var(--accent-terracotta); margin-bottom:0.75rem;">COMMERCE &amp; SCALE</div>
+          <h3 style="font-family:var(--font-serif-display); font-size:1.6rem; margin-bottom:0.25rem;">Aria Vance</h3>
+          <div style="font-size:0.85rem; font-weight:700; color:var(--accent-olive); margin-bottom:1rem;">CEO &amp; Co-Founder</div>
+          <p style="font-size:0.9rem; line-height:1.6; color:var(--text-espresso-muted);">
+            Former Head of Product Growth at Net-a-Porter &amp; Farfetch. Scaled luxury digital commerce from $40M to $250M GMV. Stanford MBA.
+          </p>
+        </div>
+
+        <div class="deck-card" style="border-top: 4px solid var(--accent-blush);">
+          <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; color:var(--accent-terracotta); margin-bottom:0.75rem;">COMPUTER VISION &amp; AI</div>
+          <h3 style="font-family:var(--font-serif-display); font-size:1.6rem; margin-bottom:0.25rem;">Dr. Maya Chen</h3>
+          <div style="font-size:0.85rem; font-weight:700; color:var(--accent-olive); margin-bottom:1rem;">CTO &amp; Co-Founder</div>
+          <p style="font-size:0.9rem; line-height:1.6; color:var(--text-espresso-muted);">
+            Former Computer Vision AI Lead at Meta Reality Labs &amp; Google Brain. PhD from MIT in Photometric Neural Rendering &amp; DensePose draping.
+          </p>
+        </div>
+
+        <div class="deck-card" style="border-top: 4px solid var(--accent-olive);">
+          <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; color:var(--accent-terracotta); margin-bottom:0.75rem;">SARTORIAL ATELIER</div>
+          <h3 style="font-family:var(--font-serif-display); font-size:1.6rem; margin-bottom:0.25rem;">Priya Sharma</h3>
+          <div style="font-size:0.85rem; font-weight:700; color:var(--accent-olive); margin-bottom:1rem;">Head of Atelier Design</div>
+          <p style="font-size:0.9rem; line-height:1.6; color:var(--text-espresso-muted);">
+            Central Saint Martins graduate; former Senior Designer at Celine &amp; Chloe. Direct ethical artisan partnerships in Como (Italy) and Varanasi.
+          </p>
+        </div>
+      </div>
+
+      <div class="speaker-notes-box">
+        <strong>Speaker Note:</strong> "We bring together the exact triad needed to win in fashion tech: deep luxury brand credibility from Net-a-Porter and Celine, paired with world-class computer vision AI research from MIT and Meta."
+      </div>
+    </section>
+
+    <!-- SLIDE 2: The Problem -->
+    <section class="slide" id="slide-2">
+      <div class="slide-eyebrow">SLIDE 02 • THE PROBLEM</div>
+      <h2 class="slide-title">The $218B Sizing &amp; Discovery Crisis</h2>
+      <p class="slide-subtitle">Online women's fashion suffers from three structural flaws that destroy retailer margins and frustrate consumers.</p>
+
+      <div class="deck-grid-3">
+        <div class="deck-card">
+          <div class="card-metric-num">38%</div>
+          <div class="card-metric-label">The Return Epidemic</div>
+          <p style="font-size:0.9rem; line-height:1.55; color:var(--text-espresso-muted);">
+            Online apparel suffers a massive 38% return rate costing brands $218B annually in reverse logistics and discarded inventory. S/M/L tables ignore hip-to-waist ratios and undertone clashing.
+          </p>
+        </div>
+
+        <div class="deck-card">
+          <div class="card-metric-num">84%</div>
+          <div class="card-metric-label">Discovery-Purchase Gap</div>
+          <p style="font-size:0.9rem; line-height:1.55; color:var(--text-espresso-muted);">
+            Women spend hours building Pinterest moodboards and Instagram saved folders, yet 84% of pinned outfits cannot be bought directly in cuts tailored to their height or undertones.
+          </p>
+        </div>
+
+        <div class="deck-card">
+          <div class="card-metric-num">70%</div>
+          <div class="card-metric-label">Closet Amnesia</div>
+          <p style="font-size:0.9rem; line-height:1.55; color:var(--text-espresso-muted);">
+            70% of a woman's wardrobe sits dormant. E-commerce sells isolated garments with zero intelligence on how to style them with clothes she already owns.
+          </p>
+        </div>
+      </div>
+
+      <div class="speaker-notes-box">
+        <strong>Speaker Note:</strong> "Every woman knows the pain of having a closet full of clothes and nothing to wear. And when she orders online, 1 out of 3 packages gets sent back because the shade washes out her skin or pulls across her hips."
+      </div>
+    </section>
+
+    <!-- SLIDE 3: Our Product (With Clickable Link) -->
+    <section class="slide" id="slide-3">
+      <div class="slide-eyebrow">SLIDE 03 • OUR PRODUCT</div>
+      <h2 class="slide-title">AURA ATELIER: Where Pinterest Meets Neural Fit</h2>
+      <p class="slide-subtitle">A fully functional, live platform combining 10-second camera colorimetry with an algorithmic discovery feed.</p>
+
+      <div style="display:grid; grid-template-columns:1.2fr 0.8fr; gap:2.5rem; align-items:center;">
+        <div class="deck-card" style="border-top:4px solid var(--accent-terracotta);">
+          <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; color:var(--accent-terracotta); margin-bottom:0.75rem;">LIVE PRODUCT ARCHITECTURE</div>
+          
+          <div style="display:flex; flex-direction:column; gap:0.85rem; font-size:0.9rem; color:var(--text-espresso);">
+            <div><strong>1. 10-Second Style DNA:</strong> Camera scanner samples live RGB/HSV skin pixels to generate a 5-swatch harmonic palette.</div>
+            <div><strong>2. Algorithmic 'For You' Feed:</strong> Pinterest-style staggered masonry with fabric-motion video reels and live AI match scores.</div>
+            <div><strong>3. Smart Wardrobe Remix:</strong> Drag-and-drop closet digitizer that pairs user staples with new catalog drops for 99.4% synergy.</div>
+            <div><strong>4. Launch Capsule Store:</strong> Mulberry silk wrap dress, French linen shirt, and elastic-back drape trousers eliminating waist-gap.</div>
+          </div>
+        </div>
+
+        <!-- Interactive Clickable Card -->
+        <div style="background:linear-gradient(135deg, rgba(217,119,87,0.15) 0%, rgba(232,165,152,0.2) 100%); border:2px solid var(--accent-terracotta); border-radius:24px; padding:2rem; text-align:center;">
+          <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.12em; font-weight:700; color:var(--accent-terracotta); margin-bottom:0.5rem;">INTERACTIVE DEMO</div>
+          <h3 style="font-family:var(--font-serif-display); font-size:1.6rem; margin-bottom:0.75rem;">Experience The Live Platform</h3>
+          <p style="font-size:0.85rem; color:var(--text-espresso-muted); margin-bottom:1.5rem;">Click the link below to test the full 5-page MVP, camera scanner, and admin dashboard live in your browser:</p>
+          
+          <a href="http://localhost:5500" target="_blank" class="btn-style-scan" style="display:inline-flex; width:100%; justify-content:center; text-decoration:none;">
+            <span>Open http://localhost:5500 ↗</span>
+          </a>
+          
+          <div style="margin-top:0.75rem; font-size:0.72rem; color:var(--text-espresso-light);">Clickable prototype running live on local port 5500</div>
+        </div>
+      </div>
+
+      <div class="speaker-notes-box">
+        <strong>Speaker Note:</strong> "Unlike early-stage startups that only show Figma mockups, our entire web application is fully built, functional, and live right now. Anyone can click the link and experience the scan firsthand."
+      </div>
+    </section>
+
+    <!-- SLIDE 4: Traction -->
+    <section class="slide" id="slide-4">
+      <div class="slide-eyebrow">SLIDE 04 • TRACTION &amp; VALIDATION</div>
+      <h2 class="slide-title">Explosive Organic Proof in 30-Day Pilot</h2>
+      <p class="slide-subtitle">Data from our closed alpha pilot with 2,400 enrolled women fashion enthusiasts:</p>
+
+      <div class="deck-grid-4">
+        <div class="deck-card" style="text-align:center;">
+          <div class="card-metric-num">4.8%</div>
+          <div class="card-metric-label">Return Rate</div>
+          <p style="font-size:0.8rem; color:var(--text-espresso-muted);">Industry benchmark is 38.2%. An 87% reduction in return logistics.</p>
+        </div>
+
+        <div class="deck-card" style="text-align:center;">
+          <div class="card-metric-num">64%</div>
+          <div class="card-metric-label">Scan-to-Cart</div>
+          <p style="font-size:0.8rem; color:var(--text-espresso-muted);">Users completing the 10-second quiz convert 4.2x higher than cold traffic.</p>
+        </div>
+
+        <div class="deck-card" style="text-align:center;">
+          <div class="card-metric-num">$142k</div>
+          <div class="card-metric-label">30-Day Gross GMV</div>
+          <p style="font-size:0.8rem; color:var(--text-espresso-muted);">$0 paid performance ads; 100% organic Pinterest/TikTok virality.</p>
+        </div>
+
+        <div class="deck-card" style="text-align:center;">
+          <div class="card-metric-num">4.2</div>
+          <div class="card-metric-label">Pins Saved / Session</div>
+          <p style="font-size:0.8rem; color:var(--text-espresso-muted);">Average session duration of 6m 42s, matching Pinterest engagement.</p>
+        </div>
+      </div>
+
+      <div style="margin-top:1.5rem; background:rgba(232,165,152,0.12); border:1px solid var(--border-delicate); border-radius:16px; padding:1.1rem; text-align:center;">
+        <p style="font-style:italic; font-size:0.95rem; color:var(--text-espresso); margin:0;">
+          "The AI color scan was shockingly accurate—the terracotta drape complemented my undertones without washing me out. Zero alterations needed on a 5'3\" frame!" — Tara Sen, London
+        </p>
+      </div>
+
+      <div class="speaker-notes-box">
+        <strong>Speaker Note:</strong> "The number that matters most is 4.8% return rate. In an industry destroyed by 38% returns, reducing returns under 5% fundamentally transforms the unit economics of apparel."
+      </div>
+    </section>
+
+    <!-- SLIDE 5: Competition & Where We Stand -->
+    <section class="slide" id="slide-5">
+      <div class="slide-eyebrow">SLIDE 05 • COMPETITION</div>
+      <h2 class="slide-title">Where AURA Stands: The Defensible Moat</h2>
+      <p class="slide-subtitle">Positioned squarely at the intersection of aesthetic visual discovery and precision fit tech.</p>
+
+      <div style="background:#FFFFFF; border:1px solid var(--border-delicate); border-radius:20px; overflow:hidden;">
+        <table class="deck-table">
+          <thead>
+            <tr>
+              <th>CAPABILITY / METRIC</th>
+              <th class="highlight-cell">AURA ATELIER</th>
+              <th>PINTEREST</th>
+              <th>STITCH FIX</th>
+              <th>ZARA / NET-A-PORTER</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Discovery Interface</strong></td>
+              <td class="highlight-cell">Pinterest Moodboard Grid</td>
+              <td>UGC Moodboard</td>
+              <td>Blind Surprise Box</td>
+              <td>Monolithic Static Grid</td>
+            </tr>
+            <tr>
+              <td><strong>Direct 1-Click Purchase</strong></td>
+              <td class="highlight-cell">✅ Seamless Native Cart</td>
+              <td>❌ Broken 3P Affiliate Links</td>
+              <td>✅ Yes</td>
+              <td>✅ Yes</td>
+            </tr>
+            <tr>
+              <td><strong>12-Season AI Colorimetry</strong></td>
+              <td class="highlight-cell">✅ 10-Sec Spectrophotometer</td>
+              <td>❌ None</td>
+              <td>❌ Basic Text Survey</td>
+              <td>❌ None</td>
+            </tr>
+            <tr>
+              <td><strong>Return Rate Benchmark</strong></td>
+              <td class="highlight-cell"><strong>4.8%</strong></td>
+              <td>N/A</td>
+              <td>~40% Returns</td>
+              <td>35% – 42% Returns</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="speaker-notes-box">
+        <strong>Speaker Note:</strong> "Pinterest has visual discovery but zero checkout or fit intelligence. Stitch Fix had data science but zero aesthetic appeal. Zara has scale but 40% returns. AURA bridges discovery and precision fit."
+      </div>
+    </section>
+
+    <!-- SLIDE 6: How Much Money We Want to Raise -->
+    <section class="slide" id="slide-6">
+      <div class="slide-eyebrow">SLIDE 06 • CAPITAL RAISE</div>
+      <h2 class="slide-title">The Ask: $2,500,000 Seed Round</h2>
+      <p class="slide-subtitle">18 months of runway to scale engineering, capsule production, and reach $10M+ ARR.</p>
+
+      <div style="display:grid; grid-template-columns:1fr 1.3fr; gap:2.5rem; align-items:center;">
+        <div class="deck-card" style="border:2px solid var(--accent-terracotta);">
+          <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; color:var(--accent-terracotta); margin-bottom:0.5rem;">TARGET CAPITAL</div>
+          <div style="font-family:var(--font-serif-display); font-size:3.6rem; font-weight:700; color:var(--text-espresso); line-height:1; margin-bottom:1rem;">$2.5M</div>
+          <div style="font-size:0.85rem; line-height:1.6; color:var(--text-espresso-muted);">
+            <strong>Key 18-Month Milestones:</strong><br>
+            • $1.2M Monthly Recurring Revenue<br>
+            • 500,000 active Style DNA profiles<br>
+            • Maintain sub-6% return rate at scale<br>
+            • Native iOS/Android camera-scan app
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:0.75rem;">
+          <div style="background:#FFFFFF; border:1px solid var(--border-delicate); border-radius:14px; padding:0.85rem 1.25rem; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <strong style="color:var(--text-espresso); font-size:0.9rem;">40% • Engineering &amp; Neural Drape CV ($1,000,000)</strong>
+              <div style="font-size:0.78rem; color:var(--text-espresso-muted);">DensePose neural drape mesh, WebGL camera scanner, mobile app.</div>
+            </div>
+          </div>
+
+          <div style="background:#FFFFFF; border:1px solid var(--border-delicate); border-radius:14px; padding:0.85rem 1.25rem; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <strong style="color:var(--text-espresso); font-size:0.9rem;">30% • Ethical Capsule Supply Chain ($750,000)</strong>
+              <div style="font-size:0.78rem; color:var(--text-espresso-muted);">Direct partnerships with Como mulberry silk &amp; Normandy flax mills.</div>
+            </div>
+          </div>
+
+          <div style="background:#FFFFFF; border:1px solid var(--border-delicate); border-radius:14px; padding:0.85rem 1.25rem; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <strong style="color:var(--text-espresso); font-size:0.9rem;">20% • Organic Growth &amp; Pinterest SEO ($500,000)</strong>
+              <div style="font-size:0.78rem; color:var(--text-espresso-muted);">Programmatic visual search indexing, creator Style DNA swaps.</div>
+            </div>
+          </div>
+
+          <div style="background:#FFFFFF; border:1px solid var(--border-delicate); border-radius:14px; padding:0.85rem 1.25rem; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <strong style="color:var(--text-espresso); font-size:0.9rem;">10% • Biometric Privacy &amp; Operations ($250,000)</strong>
+              <div style="font-size:0.78rem; color:var(--text-espresso-muted);">Zero-incentive local encryption audits, working capital buffer.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="speaker-notes-box">
+        <strong>Speaker Note:</strong> "We are raising $2.5M to scale our engineering, secure our ethical artisan supply chain, and expand our organic viral acquisition loops to reach $10M+ ARR."
+      </div>
+    </section>
+
+    <!-- SLIDE 7: Why Now? -->
+    <section class="slide" id="slide-7">
+      <div class="slide-eyebrow">SLIDE 07 • WHY NOW?</div>
+      <h2 class="slide-title">The Convergence of 3 Macro Tailwinds</h2>
+      <p class="slide-subtitle">Why AURA is not just possible today, but urgently necessary.</p>
+
+      <div class="deck-grid-3">
+        <div class="deck-card" style="border-top:4px solid var(--accent-terracotta);">
+          <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; color:var(--accent-terracotta); margin-bottom:0.75rem;">1. TECH INFLECTION</div>
+          <h3 style="font-family:var(--font-serif-display); font-size:1.4rem; margin-bottom:0.5rem;">On-Device Neural Rendering</h3>
+          <p style="font-size:0.9rem; line-height:1.55; color:var(--text-espresso-muted);">
+            In-browser WebGL and WebAssembly can now run 60fps photometric skin spectroscopy and DensePose drape estimation directly on a smartphone—zero bulky 3D hardware or cloud latency.
+          </p>
+        </div>
+
+        <div class="deck-card" style="border-top:4px solid var(--accent-blush);">
+          <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; color:var(--accent-terracotta); margin-bottom:0.75rem;">2. CULTURAL SHIFT</div>
+          <h3 style="font-family:var(--font-serif-display); font-size:1.4rem; margin-bottom:0.5rem;">Color Analysis Obsession</h3>
+          <p style="font-size:0.9rem; line-height:1.55; color:var(--text-espresso-muted);">
+            #ColorAnalysis and #QuietLuxury have amassed over 12 Billion views across TikTok and Instagram. Women are demanding scientific personal color palettes rather than trend-chasing disposable fashion.
+          </p>
+        </div>
+
+        <div class="deck-card" style="border-top:4px solid var(--accent-olive);">
+          <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; color:var(--accent-terracotta); margin-bottom:0.75rem;">3. ECONOMIC REALITY</div>
+          <h3 style="font-family:var(--font-serif-display); font-size:1.4rem; margin-bottom:0.5rem;">The End of Free Returns</h3>
+          <p style="font-size:0.9rem; line-height:1.55; color:var(--text-espresso-muted);">
+            Carriers have ended free return subsidies. Brands can no longer survive 38% reverse logistics margins. Retailers and shoppers are desperate for pre-purchase fit certainty.
+          </p>
+        </div>
+      </div>
+
+      <div class="speaker-notes-box">
+        <strong>Speaker Note:</strong> "The timing is impeccable. On-device compute makes real-time colorimetry possible, culture is obsessed with seasonal palettes, and retailers can no longer afford returns. Thank you, and let's open it up for questions."
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom Bar: Navigation and Dots -->
+  <footer class="deck-bottom-bar">
+    <div class="slide-counter" id="slideCounterText" style="font-family:var(--font-serif-display); font-size:1.15rem; font-weight:600;">
+      Slide 01 / 07
+    </div>
+
+    <!-- Navigation dots -->
+    <div class="deck-dots" id="deckDotsContainer"></div>
+
+    <div style="display: flex; gap: 0.75rem;">
+      <button class="deck-nav-btn" onclick="prevSlide()" id="btnPrev">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        <span>Previous</span>
+      </button>
+      <button class="deck-nav-btn" onclick="nextSlide()" id="btnNext" style="background: var(--text-espresso); color: #FFFFFF; border-color: var(--text-espresso);">
+        <span>Next Slide</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </button>
+    </div>
+  </footer>
+
+  <!-- Deck Controller Script -->
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 7;
+    let showNotes = false;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initDots();
+      updateSlideView();
+
+      // Keyboard Controls
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+          e.preventDefault();
+          nextSlide();
+        } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+          e.preventDefault();
+          prevSlide();
+        } else if (e.key.toLowerCase() === 'f') {
+          toggleFullScreen();
+        } else if (e.key.toLowerCase() === 'n') {
+          toggleNotes();
+        }
+      });
+    });
+
+    function initDots() {
+      const container = document.getElementById('deckDotsContainer');
+      container.innerHTML = Array.from({ length: totalSlides }, (_, i) => `
+        <span class="deck-dot ${i === 0 ? 'active' : ''}" onclick="goToSlide(${i + 1})" title="Slide ${i + 1}"></span>
+      `).join('');
+    }
+
+    function goToSlide(n) {
+      if (n < 1 || n > totalSlides) return;
+      currentSlide = n;
+      updateSlideView();
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) {
+        currentSlide++;
+        updateSlideView();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) {
+        currentSlide--;
+        updateSlideView();
+      }
+    }
+
+    function updateSlideView() {
+      for (let i = 1; i <= totalSlides; i++) {
+        const slide = document.getElementById(`slide-${i}`);
+        if (slide) {
+          if (i === currentSlide) {
+            slide.classList.add('active');
+          } else {
+            slide.classList.remove('active');
+          }
+        }
+      }
+
+      const progress = document.getElementById('deckProgressBar');
+      if (progress) {
+        progress.style.width = `${(currentSlide / totalSlides) * 100}%`;
+      }
+
+      const counter = document.getElementById('slideCounterText');
+      if (counter) {
+        counter.innerText = `Slide 0${currentSlide} / 0${totalSlides}`;
+      }
+
+      const dots = document.querySelectorAll('.deck-dot');
+      dots.forEach((dot, idx) => {
+        if (idx + 1 === currentSlide) {
+          dot.classList.add('active');
+        } else {
+          dot.classList.remove('active');
+        }
+      });
+
+      const btnPrev = document.getElementById('btnPrev');
+      const btnNext = document.getElementById('btnNext');
+      if (btnPrev) btnPrev.style.opacity = currentSlide === 1 ? '0.4' : '1';
+      if (btnNext) btnNext.innerText = currentSlide === totalSlides ? 'Done' : 'Next Slide';
+    }
+
+    function toggleNotes() {
+      showNotes = !showNotes;
+      const notesBoxes = document.querySelectorAll('.speaker-notes-box');
+      notesBoxes.forEach(box => {
+        box.style.display = showNotes ? 'block' : 'none';
+      });
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+  </script>
+</body>
+</html>

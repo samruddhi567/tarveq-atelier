@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AURA ATELIER — Indian Women's Fashion & AI Personal Styling Storefront</title>
+  <meta name="description" content="Aura Atelier is an AI-powered Indian women's fashion discovery storefront. Discover bespoke fits in Kurti Sets, Jumpsuits, Fusion Sarees & Co-ords with zero-return styling.">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+  <!-- ==========================================================================
+       1. Dynamic Sticky Navigation Header
+       ========================================================================== -->
+  <header class="site-header">
+    <div class="header-inner">
+      <!-- Left: Logo & Tagline -->
+      <a href="/" class="brand-logo">
+        <span class="brand-logo-text">AURA</span>
+        <span class="brand-logo-sub">Atelier • New Delhi</span>
+      </a>
+
+      <!-- Center: Search & Style DNA Trigger -->
+      <div style="display:flex; align-items:center; gap:1rem; max-width:680px; width:100%; margin:0 auto;">
+        <div style="position:relative; flex:1;">
+          <input 
+            type="text" 
+            id="headerSearchInput" 
+            placeholder="Search palazzo suits, fusion sarees, co-ords, linen shirts..." 
+            style="width:100%; padding:0.6rem 1.25rem 0.6rem 2.6rem; border-radius:var(--radius-pill); border:1px solid var(--border-delicate); background:#FFFFFF; font-family:inherit; font-size:0.86rem; color:var(--text-espresso); outline:none;"
+          >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position:absolute; left:1rem; top:50%; transform:translateY(-50%); color:var(--text-espresso-light);">
+            <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </div>
+
+        <button 
+          onclick="openStyleScanDrawer()" 
+          style="display:flex; align-items:center; gap:0.45rem; padding:0.55rem 1.15rem; background:linear-gradient(135deg, #FAF8F5 0%, #F5EAE6 100%); border:1.5px solid var(--accent-terracotta); border-radius:var(--radius-pill); color:var(--text-espresso); font-weight:700; font-size:0.82rem; cursor:pointer; white-space:nowrap; transition:var(--transition-smooth);"
+          onmouseover="this.style.boxShadow='var(--shadow-glow)'"
+          onmouseout="this.style.boxShadow='none'"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-terracotta)" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path></svg>
+          <span>AI Style Scan</span>
+        </button>
+      </div>
+
+      <!-- Right: User Palette Badge & Shopping Bag -->
+      <div style="display:flex; align-items:center; gap:1.15rem;">
+        <!-- User Palette Pill -->
+        <div 
+          onclick="openStyleScanDrawer()" 
+          title="Click to recalculate your 10-second Style DNA"
+          style="display:flex; align-items:center; gap:0.5rem; padding:0.4rem 0.85rem; background:#FFFFFF; border:1px solid var(--border-delicate); border-radius:var(--radius-pill); font-size:0.75rem; font-weight:600; cursor:pointer;"
+        >
+          <span style="width:10px; height:10px; border-radius:50%; background:#D4AF37; display:inline-block;"></span>
+          <span id="headerDnaBadgeLabel">Warm Golden Honey</span>
+        </div>
+
+        <!-- Wishlist -->
+        <button 
+          onclick="showToast('Your saved AURA looks are synced with your Wardrobe Vault below!')"
+          style="background:none; border:none; cursor:pointer; color:var(--text-espresso); padding:6px; display:flex; align-items:center;"
+          title="View Wishlist"
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+          </svg>
+        </button>
+
+        <!-- Shopping Bag with glowing counter badge -->
+        <button 
+          onclick="openCartDrawer()" 
+          style="position:relative; background:var(--text-espresso); color:#FFFFFF; border:none; padding:0.55rem 1.15rem; border-radius:var(--radius-pill); font-size:0.82rem; font-weight:700; display:flex; align-items:center; gap:0.55rem; cursor:pointer; transition:var(--transition-smooth);"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line></svg>
+          <span>Bag</span>
+          <span 
+            id="headerCartCount" 
+            style="background:var(--accent-terracotta); color:#FFFFFF; border-radius:50%; width:20px; height:20px; font-size:0.72rem; display:flex; align-items:center; justify-content:center; font-weight:800; box-shadow:0 0 10px rgba(217, 119, 87, 0.6);"
+          >0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       2. Category Horizontal Scrollbar (Top Filters)
+       ========================================================================== -->
+  <nav class="category-nav-bar">
+    <div class="category-scroll-container">
+      <div id="categoryScrollPills" style="display:flex; gap:0.6rem; align-items:center;">
+        <!-- Dynamically populated categories -->
+      </div>
+      <div style="margin-left:auto; font-size:0.75rem; color:var(--text-espresso-muted); white-space:nowrap;" id="feedResultsCount">
+        Showing all styles
+      </div>
+    </div>
+  </nav>
+
+  <!-- ==========================================================================
+       3. Hero Section ("Find Your Style DNA")
+       ========================================================================== -->
+  <section style="max-width:1540px; margin:1.5rem auto 0; padding:0 2rem;">
+    <div style="background:linear-gradient(135deg, #FFF9F6 0%, #F8EFEA 50%, #FAF1EC 100%); border:1px solid var(--border-delicate); border-radius:28px; padding:3rem 3.5rem; position:relative; overflow:hidden; box-shadow:var(--shadow-soft);">
+      
+      <!-- Decorative background accent -->
+      <div style="position:absolute; right:-50px; top:-50px; width:340px; height:340px; background:radial-gradient(circle, rgba(232, 165, 152, 0.25) 0%, rgba(255,255,255,0) 70%); border-radius:50%; pointer-events:none;"></div>
+
+      <div style="max-width:760px; position:relative; z-index:2;">
+        <div style="display:inline-flex; align-items:center; gap:0.5rem; background:rgba(255,255,255,0.85); backdrop-filter:blur(8px); padding:0.35rem 0.95rem; border-radius:var(--radius-pill); border:1px solid var(--border-delicate); font-size:0.75rem; font-weight:700; color:var(--accent-terracotta); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:1rem;">
+          <span>🇮🇳 Built for Indian Women & Complexions</span>
+          <span>•</span>
+          <span>Zero-Return AI Fit Sizing</span>
+        </div>
+
+        <h1 style="font-size:2.85rem; line-height:1.15; margin-bottom:1rem; color:var(--text-espresso);">
+          Discover Your 10-Second <br><span style="font-style:italic; color:var(--accent-terracotta);">Style DNA</span> & Bespoke Fit
+        </h1>
+
+        <p style="font-size:1.05rem; line-height:1.6; color:var(--text-espresso-muted); margin-bottom:2rem; max-width:620px;">
+          Never guess your size again. Our 3-second photometric scan analyzes Indian undertones and waist-to-hip silhouettes to curate bespoke kurti sets, tailored trousers, and festive drapes.
+        </p>
+
+        <div style="display:flex; flex-wrap:wrap; gap:1rem; align-items:center;">
+          <button 
+            onclick="openStyleScanDrawer()" 
+            style="padding:0.9rem 2rem; background:var(--text-espresso); color:#FFFFFF; border:none; border-radius:var(--radius-pill); font-size:0.95rem; font-weight:700; cursor:pointer; box-shadow:0 10px 25px rgba(43, 30, 26, 0.2); transition:var(--transition-smooth); display:flex; align-items:center; gap:0.6rem;"
+            onmouseover="this.style.background='var(--accent-terracotta)'"
+            onmouseout="this.style.background='var(--text-espresso)'"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            <span>Start Free Style Scan (3s)</span>
+          </button>
+
+          <a 
+            href="#discoveryFeedSection" 
+            style="padding:0.9rem 1.75rem; background:#FFFFFF; color:var(--text-espresso); border:1px solid var(--border-delicate); border-radius:var(--radius-pill); font-size:0.92rem; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:0.4rem;"
+          >
+            <span>Explore Collections</span>
+            <span>↓</span>
+          </a>
+
+          <div style="display:flex; align-items:center; gap:0.75rem; margin-left:1rem;">
+            <div style="font-size:0.78rem; color:var(--text-espresso-muted);">
+              <strong>40,000+</strong> Happy Shoppers across India • <strong>99.1%</strong> Fit Match Rate
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       4. Pinterest-Style Masonry Grid Feed (Core Section)
+       ========================================================================== -->
+  <main class="feed-container" id="discoveryFeedSection">
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:1.5rem;">
+      <div>
+        <span style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.12em; font-weight:700; color:var(--accent-terracotta);">Curated Daily Drops</span>
+        <h2 style="font-size:2rem; color:var(--text-espresso); margin-top:0.25rem;">For You Discovery Feed</h2>
+      </div>
+      <div style="font-size:0.85rem; color:var(--text-espresso-muted);">
+        All prices shown strictly in <strong>INR (₹)</strong> with instant BlueDart pincode dispatch.
+      </div>
+    </div>
+
+    <!-- Masonry Feed Container -->
+    <div class="pinterest-masonry" id="discoveryFeedGrid">
+      <!-- Staggered product cards rendered by app.js -->
+    </div>
+  </main>
+
+  <!-- ==========================================================================
+       5. Smart Wardrobe Remix Banner & Vault
+       ========================================================================== -->
+  <section style="background:var(--bg-cream-soft); border-top:1px solid var(--border-delicate); border-bottom:1px solid var(--border-delicate); padding:4rem 2rem;">
+    <div style="max-width:1540px; margin:0 auto;">
+      <div style="display:grid; grid-template-columns:1fr 1.2fr; gap:3rem; align-items:center;">
+        <div>
+          <span style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.12em; font-weight:700; color:var(--accent-terracotta);">Smart Closet Integration</span>
+          <h2 style="font-size:2.4rem; line-height:1.2; margin:0.5rem 0 1rem; color:var(--text-espresso);">
+            Digitize Your Closet & <br><span style="font-style:italic;">Remix With New Drops</span>
+          </h2>
+          <p style="font-size:0.95rem; color:var(--text-espresso-muted); line-height:1.6; margin-bottom:1.75rem;">
+            Snap photos of existing pieces already hanging in your wardrobe. Our AI remix algorithm pairs them with AURA trousers, kurtas, and dupattas so you wear 100% of your closet.
+          </p>
+
+          <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+            <button 
+              onclick="triggerRemixWithItem('Classic Chikankari Ivory Kurta')" 
+              style="padding:0.75rem 1.4rem; background:var(--text-espresso); color:#FFFFFF; border:none; border-radius:var(--radius-pill); font-size:0.85rem; font-weight:700; cursor:pointer;"
+            >
+              ✨ Try Outfit Remix
+            </button>
+            <button 
+              onclick="showToast('Drag & Drop uploader ready! Select clothing photo from your device.')" 
+              style="padding:0.75rem 1.4rem; background:#FFFFFF; color:var(--text-espresso); border:1px solid var(--border-delicate); border-radius:var(--radius-pill); font-size:0.85rem; font-weight:700; cursor:pointer;"
+            >
+              + Upload My Clothes
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <div style="background:#FFFFFF; border:1px solid var(--border-delicate); border-radius:24px; padding:1.5rem; box-shadow:var(--shadow-soft);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; padding-bottom:0.75rem; border-bottom:1px solid var(--border-delicate);">
+              <span style="font-size:0.85rem; font-weight:700; color:var(--text-espresso);">Your Wardrobe Vault Items</span>
+              <span style="font-size:0.75rem; color:var(--accent-terracotta); font-weight:600;">3 Digitized Pieces</span>
+            </div>
+
+            <div id="vaultGalleryGrid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:1rem;">
+              <!-- Vault items populated dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       6. Social Proof & Community Board ("Real Women, Real Fit")
+       ========================================================================== -->
+  <section style="max-width:1540px; margin:4rem auto; padding:0 2rem;">
+    <div style="text-align:center; max-width:680px; margin:0 auto 2.5rem;">
+      <span style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.12em; font-weight:700; color:var(--accent-terracotta);">Community Fit Verification</span>
+      <h2 style="font-size:2.2rem; color:var(--text-espresso); margin-top:0.35rem;">Real Women, Real Fit</h2>
+      <p style="font-size:0.92rem; color:var(--text-espresso-muted); margin-top:0.5rem;">
+        See verified customer fit reviews with body geometry and undertone tags before you order.
+      </p>
+    </div>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:1.5rem;">
+      <!-- Review 1 -->
+      <div style="background:#FFFFFF; border:1px solid var(--border-delicate); border-radius:20px; padding:1.5rem; box-shadow:var(--shadow-soft);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+          <div>
+            <div style="font-weight:700; font-size:0.95rem; color:var(--text-espresso);">Pooja K. (Bangalore)</div>
+            <div style="font-size:0.72rem; color:var(--accent-olive); font-weight:700;">✓ Verified Purchase • Size M</div>
+          </div>
+          <span style="background:rgba(232, 165, 152, 0.2); padding:0.25rem 0.6rem; border-radius:var(--radius-pill); font-size:0.72rem; font-weight:700; color:var(--accent-terracotta);">Pear Shape</span>
+        </div>
+        <p style="font-size:0.85rem; color:var(--text-espresso-muted); line-height:1.5; margin-bottom:1rem;">
+          "The Palazzo Kurti set in Gulabi Blush literally fits like it was tailored at an old Delhi boutique. The waist has zero gap, and the fabric drape is dreamlike!"
+        </p>
+        <div style="display:flex; gap:0.5rem; font-size:0.72rem; color:var(--text-espresso-light);">
+          <span>Height: 5'4" (162 cm)</span> • <span>Undertone: Warm Olive</span>
+        </div>
+      </div>
+
+      <!-- Review 2 -->
+      <div style="background:#FFFFFF; border:1px solid var(--border-delicate); border-radius:20px; padding:1.5rem; box-shadow:var(--shadow-soft);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+          <div>
+            <div style="font-weight:700; font-size:0.95rem; color:var(--text-espresso);">Ananya R. (Delhi NCR)</div>
+            <div style="font-size:0.72rem; color:var(--accent-olive); font-weight:700;">✓ Verified Purchase • Size L</div>
+          </div>
+          <span style="background:rgba(232, 165, 152, 0.2); padding:0.25rem 0.6rem; border-radius:var(--radius-pill); font-size:0.72rem; font-weight:700; color:var(--accent-terracotta);">Hourglass</span>
+        </div>
+        <p style="font-size:0.85rem; color:var(--text-espresso-muted); line-height:1.5; margin-bottom:1rem;">
+          "Normally I have to return 2 out of every 3 pants bought online due to thigh vs waist fitting. The Tailored Trousers in Roasted Espresso fit on the first try!"
+        </p>
+        <div style="display:flex; gap:0.5rem; font-size:0.72rem; color:var(--text-espresso-light);">
+          <span>Height: 5'7" (170 cm)</span> • <span>Undertone: Warm Honey</span>
+        </div>
+      </div>
+
+      <!-- Review 3 -->
+      <div style="background:#FFFFFF; border:1px solid var(--border-delicate); border-radius:20px; padding:1.5rem; box-shadow:var(--shadow-soft);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+          <div>
+            <div style="font-weight:700; font-size:0.95rem; color:var(--text-espresso);">Meera S. (Mumbai)</div>
+            <div style="font-size:0.72rem; color:var(--accent-olive); font-weight:700;">✓ Verified Purchase • Size S</div>
+          </div>
+          <span style="background:rgba(232, 165, 152, 0.2); padding:0.25rem 0.6rem; border-radius:var(--radius-pill); font-size:0.72rem; font-weight:700; color:var(--accent-terracotta);">Petite Rectangle</span>
+        </div>
+        <p style="font-size:0.85rem; color:var(--text-espresso-muted); line-height:1.5; margin-bottom:1rem;">
+          "Pre-pleated Indo-Western saree draped in under 45 seconds before my cousin's sangeet. The fit score prediction of 99% was 100% accurate."
+        </p>
+        <div style="display:flex; gap:0.5rem; font-size:0.72rem; color:var(--text-espresso-light);">
+          <span>Height: 5'2" (157 cm)</span> • <span>Undertone: Neutral Beige</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       7. Minimal Footer & Newsletter
+       ========================================================================== -->
+  <footer style="background:#2B1E1A; color:#FAF8F5; padding:4.5rem 2rem 2.5rem; border-top:1px solid rgba(232, 165, 152, 0.2);">
+    <div style="max-width:1540px; margin:0 auto; display:grid; grid-template-columns:1.5fr 1fr 1fr 1.5fr; gap:3rem; margin-bottom:3.5rem;">
+      <div>
+        <div style="font-family:var(--font-serif-display); font-size:2rem; letter-spacing:0.16em; font-weight:600; margin-bottom:0.5rem;">AURA</div>
+        <div style="font-size:0.72rem; letter-spacing:0.25em; text-transform:uppercase; color:var(--accent-blush); margin-bottom:1.25rem;">Atelier • New Delhi</div>
+        <p style="font-size:0.85rem; color:rgba(250, 248, 245, 0.7); line-height:1.6; max-width:320px;">
+          Pioneering AI sizing and shade calibration for Indian women. Say goodbye to apparel return friction forever.
+        </p>
+      </div>
+
+      <div>
+        <h4 style="font-size:0.95rem; font-weight:700; margin-bottom:1.25rem; color:#FAF8F5;">Collections</h4>
+        <ul style="list-style:none; font-size:0.85rem; line-height:2.2; color:rgba(250, 248, 245, 0.7);">
+          <li><a href="javascript:void(0)" onclick="filterCategory('Palazzo Suits & Kurti Sets')" style="color:inherit; text-decoration:none;">Palazzo Suits & Kurti Sets</a></li>
+          <li><a href="javascript:void(0)" onclick="filterCategory('Jumpsuits & Playsuits')" style="color:inherit; text-decoration:none;">Jumpsuits & Playsuits</a></li>
+          <li><a href="javascript:void(0)" onclick="filterCategory('Casual & Formal Shirts')" style="color:inherit; text-decoration:none;">Casual & Formal Shirts</a></li>
+          <li><a href="javascript:void(0)" onclick="filterCategory('Indo-Western Fusion & Sarees')" style="color:inherit; text-decoration:none;">Indo-Western Sarees</a></li>
+          <li><a href="javascript:void(0)" onclick="filterCategory('Tailored Trousers & Co-ords')" style="color:inherit; text-decoration:none;">Tailored Co-ords</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 style="font-size:0.95rem; font-weight:700; margin-bottom:1.25rem; color:#FAF8F5;">Customer Care</h4>
+        <ul style="list-style:none; font-size:0.85rem; line-height:2.2; color:rgba(250, 248, 245, 0.7);">
+          <li><a href="javascript:void(0)" onclick="openSizeChartModal()" style="color:inherit; text-decoration:none;">Indian Size Chart Guide</a></li>
+          <li><a href="javascript:void(0)" onclick="showToast('BlueDart Express dispatches nationwide within 24h.')" style="color:inherit; text-decoration:none;">Pincode Logistics</a></li>
+          <li><a href="javascript:void(0)" onclick="openFitGateModal()" style="color:inherit; text-decoration:none;">Zero-Return Guarantee</a></li>
+          <li><a href="javascript:void(0)" onclick="showToast('WhatsApp Support: +91 98712 34567')" style="color:inherit; text-decoration:none;">WhatsApp Styling Desk</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 style="font-size:0.95rem; font-weight:700; margin-bottom:0.75rem; color:#FAF8F5;">Join The Club</h4>
+        <p style="font-size:0.82rem; color:rgba(250, 248, 245, 0.7); margin-bottom:1rem; line-height:1.5;">
+          Get weekly curated drops matching your Style DNA and private salon invites in Delhi, Mumbai & Bangalore.
+        </p>
+        <div style="display:flex; gap:0.5rem;">
+          <input 
+            type="email" 
+            placeholder="Enter your email" 
+            style="flex:1; padding:0.6rem 1rem; border-radius:var(--radius-pill); border:1px solid rgba(232, 165, 152, 0.3); background:rgba(255, 255, 255, 0.08); color:#FAF8F5; font-size:0.85rem; outline:none;"
+          >
+          <button 
+            onclick="showToast('Welcome to the AURA Atelier Club! ✨')" 
+            style="padding:0.6rem 1.25rem; border-radius:var(--radius-pill); background:var(--accent-terracotta); color:#FFFFFF; border:none; font-weight:700; font-size:0.82rem; cursor:pointer;"
+          >
+            Join
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div style="max-width:1540px; margin:0 auto; padding-top:2rem; border-top:1px solid rgba(255, 255, 255, 0.1); display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; color:rgba(250, 248, 245, 0.5);">
+      <div>© 2026 AURA ATELIER PVT. LTD. All rights reserved. Prices strictly in Indian Rupees (₹).</div>
+      <div style="display:flex; gap:1.5rem;">
+        <span>UPI Accepted (GPay, PhonePe, Paytm)</span>
+        <span>•</span>
+        <span>BlueDart Express Logistics</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==========================================================================
+       8. Product Detail Page (PDP) Drawer
+       ========================================================================== -->
+  <div class="pdp-drawer-backdrop" id="pdpDrawer" onclick="if(event.target === this) closePdpDrawer()">
+    <div class="pdp-drawer-panel">
+      <!-- Top Close Bar -->
+      <div style="padding:1rem 1.5rem; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-delicate); background:#FFFFFF; position:sticky; top:0; z-index:20;">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--accent-terracotta);" id="pdpBrand">AURA ATELIER</span>
+          <span style="color:var(--text-espresso-light);">•</span>
+          <span style="font-size:0.75rem; color:var(--text-espresso-muted);" id="pdpCategory">Ethnic Wear</span>
+        </div>
+        <button onclick="closePdpDrawer()" style="background:none; border:none; cursor:pointer; padding:6px; color:var(--text-espresso);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <!-- Multi-Angle Image Carousel -->
+      <div class="pdp-carousel-wrap">
+        <img src="" alt="Garment View" id="pdpActiveImg" class="pdp-carousel-img">
+        <div class="pdp-carousel-thumbs" id="pdpCarouselThumbs">
+          <!-- Dots rendered by app.js -->
+        </div>
+      </div>
+
+      <!-- Product Details Body -->
+      <div style="padding:1.5rem 1.75rem;">
+        <h2 id="pdpTitle" style="font-size:1.75rem; line-height:1.2; margin-bottom:0.5rem; color:var(--text-espresso);">Product Name</h2>
+        
+        <!-- Strict INR Price Row -->
+        <div class="price-row" style="margin-bottom:1rem;">
+          <span class="price-discounted" id="pdpDiscountPrice" style="font-size:1.7rem;">₹1,499</span>
+          <span class="price-original" id="pdpOriginalPrice" style="font-size:1.05rem;">₹2,999</span>
+          <span class="price-off-badge" id="pdpDiscountPct" style="font-size:0.95rem;">(50% OFF)</span>
+          <span style="font-size:0.75rem; color:var(--text-espresso-light); margin-left:0.5rem;">Inclusive of all taxes</span>
+        </div>
+
+        <!-- Live AI Match Score Banner -->
+        <div class="pdp-match-banner">
+          <div>
+            <div style="font-weight:700; font-size:0.95rem; color:var(--text-espresso);" id="pdpMatchScoreValue">★ 98% Perfect Fit for Pear Shape</div>
+            <div style="font-size:0.78rem; color:var(--text-espresso-muted); margin-top:2px;" id="pdpMatchRationale">Bespoke cut tailored for high-waist ease.</div>
+          </div>
+          <button onclick="openStyleScanDrawer()" style="background:#FFFFFF; border:1px solid var(--accent-terracotta); color:var(--accent-terracotta); border-radius:var(--radius-pill); padding:0.35rem 0.85rem; font-size:0.75rem; font-weight:700; cursor:pointer;">
+            Calibrate Fit
+          </button>
+        </div>
+
+        <!-- Color Swatch Selector -->
+        <div style="margin-bottom:1.25rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+            <span style="font-size:0.82rem; font-weight:700; color:var(--text-espresso);">Select Color: <span id="pdpSelectedColorName" style="color:var(--accent-terracotta); font-weight:600;">Gulabi Blush</span></span>
+          </div>
+          <div id="pdpColorSwatches" style="display:flex; gap:0.75rem; align-items:center;">
+            <!-- Rendered by app.js -->
+          </div>
+        </div>
+
+        <!-- Size Variant Selector (S, M, L, XL, XXL) & Size Guide Link -->
+        <div style="margin-bottom:1.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+            <span style="font-size:0.82rem; font-weight:700; color:var(--text-espresso);">Select Size:</span>
+            <button onclick="openSizeChartModal()" style="background:none; border:none; font-size:0.78rem; font-weight:700; color:var(--accent-terracotta); cursor:pointer; text-decoration:underline;">
+              Size Chart Guide
+            </button>
+          </div>
+          <div id="pdpSizePills" style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <!-- Rendered by app.js -->
+          </div>
+        </div>
+
+        <!-- Quantity Selector Widget -->
+        <div style="margin-bottom:1.5rem;">
+          <span style="font-size:0.82rem; font-weight:700; color:var(--text-espresso); display:block; margin-bottom:0.5rem;">Quantity:</span>
+          <div class="qty-selector-widget">
+            <button class="qty-btn" onclick="changePdpQty(-1)">−</button>
+            <span class="qty-display" id="pdpQtyDisplay">1</span>
+            <button class="qty-btn" onclick="changePdpQty(1)">+</button>
+          </div>
+        </div>
+
+        <!-- Pin-code Delivery Checker Box -->
+        <div class="pincode-box-wrapper">
+          <div style="font-size:0.82rem; font-weight:700; color:var(--text-espresso); display:flex; align-items:center; gap:0.4rem;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            <span>Check Delivery & Cash on Delivery Availability</span>
+          </div>
+          <div class="pincode-input-row">
+            <input type="text" id="pincodeInput" placeholder="Enter 6-digit PIN code (e.g., 248001)" maxlength="6" class="pincode-input">
+            <button class="btn-pincode-check" onclick="checkPincodeDelivery()">Check Date</button>
+          </div>
+          <div id="pincodeResultMsg" style="font-size:0.78rem; color:var(--text-espresso-muted); margin-top:0.5rem;">
+            Enter your 6-digit Indian PIN code to check delivery time.
+          </div>
+        </div>
+
+        <!-- Fabric & Specifications -->
+        <div style="margin-bottom:2rem; padding-top:1rem; border-top:1px solid var(--border-delicate);">
+          <h4 style="font-size:0.85rem; font-weight:700; color:var(--text-espresso); margin-bottom:0.4rem;">Garment Details & Fabric</h4>
+          <p id="pdpDescription" style="font-size:0.82rem; color:var(--text-espresso-muted); line-height:1.6; margin-bottom:0.5rem;"></p>
+          <div id="pdpFabricDetails" style="font-size:0.8rem; font-weight:600; color:var(--accent-terracotta);"></div>
+        </div>
+
+        <!-- Action Buttons: Buy Now & Add to Bag -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.85rem; position:sticky; bottom:0; background:#FAF8F5; padding:1rem 0; border-top:1px solid var(--border-delicate);">
+          <button 
+            onclick="handleAddBagClick()" 
+            style="padding:0.9rem; background:#FFFFFF; color:var(--text-espresso); border:1.5px solid var(--text-espresso); border-radius:var(--radius-pill); font-size:0.88rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:0.5rem;"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line></svg>
+            <span>Add to Bag</span>
+          </button>
+
+          <button 
+            onclick="handleBuyNowClick()" 
+            style="padding:0.9rem; background:var(--text-espresso); color:#FFFFFF; border:none; border-radius:var(--radius-pill); font-size:0.88rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:0.5rem; box-shadow:0 8px 20px rgba(43, 30, 26, 0.25);"
+          >
+            <span>⚡ Buy Now</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       9. Style DNA Calibration Drawer (3-Second Camera Calibration)
+       ========================================================================== -->
+  <div class="pdp-drawer-backdrop" id="styleDnaDrawer" onclick="if(event.target === this) closeStyleScanDrawer()">
+    <div class="pdp-drawer-panel" style="width:580px;">
+      <div style="padding:1.25rem 1.75rem; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-delicate); background:#FFFFFF;">
+        <div>
+          <span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--accent-terracotta);">Photometric Scanner</span>
+          <h3 style="font-family:var(--font-serif-display); font-size:1.4rem; color:var(--text-espresso);">10-Second Style DNA Calibration</h3>
+        </div>
+        <button onclick="closeStyleScanDrawer()" style="background:none; border:none; cursor:pointer; padding:6px; color:var(--text-espresso);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div style="padding:1.75rem;">
+        <!-- Simulated Camera Viewport with laser sweep -->
+        <div style="position:relative; width:100%; height:260px; background:#1C1412; border-radius:20px; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#FAF8F5; margin-bottom:1.5rem; border:2px solid var(--border-delicate);">
+          <div style="position:absolute; inset:0; background:radial-gradient(circle, rgba(232, 165, 152, 0.2) 0%, rgba(28, 20, 18, 0.9) 80%);"></div>
+          
+          <!-- Silhouette outline -->
+          <svg width="100" height="140" viewBox="0 0 100 140" fill="none" stroke="rgba(232, 165, 152, 0.6)" stroke-width="1.5" style="position:relative; z-index:2;">
+            <circle cx="50" cy="22" r="14"></circle>
+            <path d="M30 45 C30 40 40 38 50 38 C60 38 70 40 70 45 L74 80 C74 95 62 105 50 105 C38 105 26 95 26 80 Z"></path>
+            <path d="M36 105 L32 135 M64 105 L68 135"></path>
+          </svg>
+
+          <!-- Laser scanning line -->
+          <div style="position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, transparent, #E8A598, #D97757, transparent); box-shadow:0 0 12px #D97757; animation:laser-scan 2.5s infinite alternate ease-in-out; z-index:3;"></div>
+
+          <div style="position:relative; z-index:4; text-align:center; margin-top:0.75rem;">
+            <div style="font-size:0.78rem; font-weight:700; letter-spacing:0.05em;" id="scanLaserStatus">Camera Ready for Indian Skin Melanin & Drape Assessment</div>
+            <div style="font-size:0.68rem; color:rgba(250, 248, 245, 0.6); margin-top:2px;">RGB/HSV Chromatic Calibration Engine</div>
+          </div>
+        </div>
+
+        <style>
+          @keyframes laser-scan {
+            0% { top: 5%; }
+            100% { top: 92%; }
+          }
+        </style>
+
+        <!-- Body Geometry Inputs -->
+        <div style="background:#FFFFFF; border:1px solid var(--border-delicate); border-radius:18px; padding:1.25rem; margin-bottom:1.5rem;">
+          <h4 style="font-size:0.85rem; font-weight:700; color:var(--text-espresso); margin-bottom:1rem;">Your Body Geometry (Inches / CM)</h4>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:0.75rem;">
+            <div>
+              <label style="font-size:0.75rem; color:var(--text-espresso-muted); display:block; margin-bottom:4px;">Height (cm)</label>
+              <input type="number" id="dnaHeightInput" value="162" style="width:100%; padding:0.5rem 0.75rem; border:1px solid var(--border-delicate); border-radius:8px; font-size:0.85rem;">
+            </div>
+            <div>
+              <label style="font-size:0.75rem; color:var(--text-espresso-muted); display:block; margin-bottom:4px;">Weight (kg)</label>
+              <input type="number" id="dnaWeightInput" value="58" style="width:100%; padding:0.5rem 0.75rem; border:1px solid var(--border-delicate); border-radius:8px; font-size:0.85rem;">
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.6rem;">
+            <div>
+              <label style="font-size:0.72rem; color:var(--text-espresso-muted); display:block; margin-bottom:4px;">Bust (in)</label>
+              <input type="number" id="dnaBustInput" value="35" style="width:100%; padding:0.5rem 0.6rem; border:1px solid var(--border-delicate); border-radius:8px; font-size:0.85rem;">
+            </div>
+            <div>
+              <label style="font-size:0.72rem; color:var(--text-espresso-muted); display:block; margin-bottom:4px;">Waist (in)</label>
+              <input type="number" id="dnaWaistInput" value="28" style="width:100%; padding:0.5rem 0.6rem; border:1px solid var(--border-delicate); border-radius:8px; font-size:0.85rem;">
+            </div>
+            <div>
+              <label style="font-size:0.72rem; color:var(--text-espresso-muted); display:block; margin-bottom:4px;">Hip (in)</label>
+              <input type="number" id="dnaHipInput" value="39" style="width:100%; padding:0.5rem 0.6rem; border:1px solid var(--border-delicate); border-radius:8px; font-size:0.85rem;">
+            </div>
+          </div>
+        </div>
+
+        <button 
+          id="btnRunScan" 
+          onclick="runSimulatedCalibration()" 
+          style="width:100%; padding:1rem; background:var(--text-espresso); color:#FFFFFF; border:none; border-radius:var(--radius-pill); font-size:0.95rem; font-weight:700; cursor:pointer; box-shadow:0 8px 25px rgba(43, 30, 26, 0.25);"
+        >
+          ✨ Scan & Calibrate Style DNA (3 Secs)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       10. Strict Fit-Gate Blocking Modal
+       ========================================================================== -->
+  <div class="fit-gate-modal-backdrop" id="fitGateModal">
+    <div class="fit-gate-modal-card">
+      <div style="width:64px; height:64px; background:rgba(232, 165, 152, 0.25); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 1.25rem; color:var(--accent-terracotta);">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+      </div>
+
+      <h3 style="font-family:var(--font-serif-display); font-size:1.75rem; color:var(--text-espresso); margin-bottom:0.75rem;">
+        Style DNA Calibration Required
+      </h3>
+
+      <p style="font-size:0.92rem; color:var(--text-espresso-muted); line-height:1.6; margin-bottom:1.75rem;">
+        At <strong>AURA Atelier</strong>, we enforce a strict zero-return policy by guaranteeing your fit before checkout. Running your 3-second Style DNA calibration unlocks bespoke size mapping and eliminates trial returns.
+      </p>
+
+      <div style="display:flex; flex-direction:column; gap:0.75rem;">
+        <button 
+          onclick="triggerStyleScanFromFitGate()" 
+          style="padding:0.95rem; background:var(--accent-terracotta); color:#FFFFFF; border:none; border-radius:var(--radius-pill); font-size:0.92rem; font-weight:700; cursor:pointer; box-shadow:0 8px 20px rgba(217, 119, 87, 0.3);"
+        >
+          ✨ Calibrate My Style DNA (3 Secs)
+        </button>
+
+        <button 
+          onclick="bypassFitGateAndProceed()" 
+          style="padding:0.85rem; background:transparent; color:var(--text-espresso-muted); border:1px solid var(--border-delicate); border-radius:var(--radius-pill); font-size:0.85rem; font-weight:600; cursor:pointer;"
+        >
+          Skip & Proceed with Standard Sizing
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       11. Myntra/Meesho-Style Shopping Cart & Checkout Drawer
+       ========================================================================== -->
+  <div class="cart-drawer-backdrop" id="cartDrawer" onclick="if(event.target === this) closeCartDrawer()">
+    <div class="cart-drawer-panel">
+      <!-- Cart Header -->
+      <div class="cart-header">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <h3 style="font-family:var(--font-serif-display); font-size:1.35rem; color:var(--text-espresso);">Your Shopping Bag</h3>
+        </div>
+        <button onclick="closeCartDrawer()" style="background:none; border:none; cursor:pointer; padding:6px; color:var(--text-espresso);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <!-- Cart Items List with inside-cart Quantity Adjustment -->
+      <div class="cart-body">
+        <div id="cartItemsList">
+          <!-- Populated by app.js -->
+        </div>
+
+        <!-- Coupon Code Box (e.g. AURA10 or FIRSTAURA) -->
+        <div style="margin-top:1.5rem; background:#FFFFFF; border:1px solid var(--border-delicate); border-radius:16px; padding:1rem;">
+          <span style="font-size:0.78rem; font-weight:700; color:var(--text-espresso); display:block; margin-bottom:0.4rem;">Apply Coupon or Gift Voucher</span>
+          <div style="display:flex; gap:0.5rem;">
+            <input type="text" id="couponCodeInput" placeholder="Try 'AURA10' or 'FIRSTAURA'" style="flex:1; padding:0.55rem 0.85rem; border:1px solid var(--border-delicate); border-radius:var(--radius-pill); font-size:0.82rem; text-transform:uppercase; outline:none;">
+            <button onclick="applyCartCoupon()" style="padding:0.55rem 1rem; border-radius:var(--radius-pill); background:var(--text-espresso); color:#FFFFFF; border:none; font-size:0.8rem; font-weight:700; cursor:pointer;">
+              Apply
+            </button>
+          </div>
+          <div id="couponApplyMsg" style="font-size:0.75rem; margin-top:0.4rem;"></div>
+        </div>
+
+        <!-- Indian Payment Gateway Selector -->
+        <div style="margin-top:1.5rem;">
+          <span style="font-size:0.78rem; font-weight:700; color:var(--text-espresso); display:block;">Select Payment Gateway</span>
+          <div class="payment-methods-grid">
+            <label class="payment-radio-label selected" onclick="selectPaymentMethod('upi', this)">
+              <input type="radio" name="paymentMethod" value="upi" checked style="accent-color:var(--accent-terracotta);">
+              <span>UPI (GPay / PhonePe)</span>
+            </label>
+
+            <label class="payment-radio-label" onclick="selectPaymentMethod('cod', this)">
+              <input type="radio" name="paymentMethod" value="cod" style="accent-color:var(--accent-terracotta);">
+              <span>Cash on Delivery</span>
+            </label>
+
+            <label class="payment-radio-label" onclick="selectPaymentMethod('cards', this)">
+              <input type="radio" name="paymentMethod" value="cards" style="accent-color:var(--accent-terracotta);">
+              <span>Credit / Debit Card</span>
+            </label>
+
+            <label class="payment-radio-label" onclick="selectPaymentMethod('netbanking', this)">
+              <input type="radio" name="paymentMethod" value="netbanking" style="accent-color:var(--accent-terracotta);">
+              <span>Netbanking</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cart Footer / Price Summary strictly in INR (₹) -->
+      <div class="cart-footer">
+        <div style="font-size:0.82rem; color:var(--text-espresso-muted); margin-bottom:0.4rem; display:flex; justify-content:space-between;">
+          <span>Total MRP</span>
+          <span id="cartSummaryTotalMRP">₹0</span>
+        </div>
+        <div style="font-size:0.82rem; color:var(--accent-green); margin-bottom:0.75rem; display:flex; justify-content:space-between;">
+          <span>Discount on MRP</span>
+          <span id="cartSummaryDiscount">− ₹0</span>
+        </div>
+        <div style="font-size:1.15rem; font-weight:700; color:var(--text-espresso); padding-top:0.6rem; border-top:1px dashed var(--border-delicate); margin-bottom:1rem; display:flex; justify-content:space-between; align-items:baseline;">
+          <span>Final Amount (INR)</span>
+          <span id="cartSummaryFinal" style="font-family:var(--font-serif-display); font-size:1.35rem; color:var(--accent-terracotta);">₹0</span>
+        </div>
+
+        <button 
+          onclick="initiateCheckout()" 
+          style="width:100%; padding:0.95rem; background:var(--text-espresso); color:#FFFFFF; border:none; border-radius:var(--radius-pill); font-size:0.95rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:0.5rem; box-shadow:0 10px 25px rgba(43, 30, 26, 0.25);"
+        >
+          <span>🔒 Proceed to Indian Checkout</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       12. Size Chart Guide Modal (Indian Body Standards)
+       ========================================================================== -->
+  <div class="fit-gate-modal-backdrop" id="sizeChartModal" onclick="if(event.target === this) closeSizeChartModal()">
+    <div class="fit-gate-modal-card" style="max-width:680px; text-align:left;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+        <div>
+          <span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--accent-terracotta);">Standard Fit Matrix</span>
+          <h3 style="font-family:var(--font-serif-display); font-size:1.5rem; color:var(--text-espresso);">Indian Women's Size Guide</h3>
+        </div>
+        <button onclick="closeSizeChartModal()" style="background:none; border:none; cursor:pointer; padding:6px; color:var(--text-espresso);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <p style="font-size:0.85rem; color:var(--text-espresso-muted); margin-bottom:1rem;">
+        Calibrated with ease allowances for Indian ethnic kurtas, palazzos, and tailored bottoms (all units in Inches).
+      </p>
+
+      <table style="width:100%; border-collapse:collapse; font-size:0.82rem; margin-bottom:1.5rem;">
+        <thead>
+          <tr style="background:var(--bg-cream-soft); border-bottom:1.5px solid var(--border-delicate);">
+            <th style="padding:0.6rem; text-align:left;">Size</th>
+            <th style="padding:0.6rem; text-align:left;">Bust (in)</th>
+            <th style="padding:0.6rem; text-align:left;">Waist (in)</th>
+            <th style="padding:0.6rem; text-align:left;">Hip (in)</th>
+            <th style="padding:0.6rem; text-align:left;">Best For</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid var(--border-delicate);">
+            <td style="padding:0.6rem; font-weight:700;">S (Small)</td>
+            <td style="padding:0.6rem;">32 - 34"</td>
+            <td style="padding:0.6rem;">26 - 28"</td>
+            <td style="padding:0.6rem;">36 - 38"</td>
+            <td style="padding:0.6rem; color:var(--accent-olive);">Petite Frame</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border-delicate); background:rgba(232, 165, 152, 0.1);">
+            <td style="padding:0.6rem; font-weight:700;">M (Medium)</td>
+            <td style="padding:0.6rem;">35 - 37"</td>
+            <td style="padding:0.6rem;">29 - 31"</td>
+            <td style="padding:0.6rem;">39 - 41"</td>
+            <td style="padding:0.6rem; color:var(--accent-terracotta); font-weight:700;">Most Common (52%)</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border-delicate);">
+            <td style="padding:0.6rem; font-weight:700;">L (Large)</td>
+            <td style="padding:0.6rem;">38 - 40"</td>
+            <td style="padding:0.6rem;">32 - 34"</td>
+            <td style="padding:0.6rem;">42 - 44"</td>
+            <td style="padding:0.6rem;">Fuller Silhouette</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border-delicate);">
+            <td style="padding:0.6rem; font-weight:700;">XL</td>
+            <td style="padding:0.6rem;">41 - 43"</td>
+            <td style="padding:0.6rem;">35 - 37"</td>
+            <td style="padding:0.6rem;">45 - 47"</td>
+            <td style="padding:0.6rem;">Curvy & Tall</td>
+          </tr>
+          <tr>
+            <td style="padding:0.6rem; font-weight:700;">XXL</td>
+            <td style="padding:0.6rem;">44 - 46"</td>
+            <td style="padding:0.6rem;">38 - 40"</td>
+            <td style="padding:0.6rem;">48 - 50"</td>
+            <td style="padding:0.6rem;">Plus Curves</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <button 
+        onclick="closeSizeChartModal()" 
+        style="width:100%; padding:0.75rem; background:var(--text-espresso); color:#FFFFFF; border:none; border-radius:var(--radius-pill); font-size:0.85rem; font-weight:700; cursor:pointer;"
+      >
+        Close Size Guide
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast Shelf -->
+  <div class="toast-shelf" id="toastShelf"></div>
+
+  <!-- Client Script -->
+  <script src="/app.js"></script>
+</body>
+</html>
