@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { AnnouncementBar } from './AnnouncementBar';
-import { Search, Heart, User as UserIcon, ShoppingBag, Menu, X, ShieldCheck, Sparkles, ChevronRight, MapPin } from 'lucide-react';
+import { Search, Heart, User as UserIcon, ShoppingBag, Menu, X, MapPin, ChevronRight, Sparkles, Shirt } from 'lucide-react';
 import { User as UserType } from '../types';
 
-export type ActiveNavTab = 'home' | 'shop-all' | 'shop-by-fit' | 'style-studio' | 'wardrobe' | 'new-arrivals' | 'orders';
+export type ActiveNavTab = 'home' | 'shop-all' | 'new-arrivals' | 'orders' | 'ai-roadmap';
 
 interface HeaderProps {
   user: UserType | null;
@@ -13,8 +13,10 @@ interface HeaderProps {
   onOpenWishlist: () => void;
   onOpenCart: () => void;
   onOpenAuth: () => void;
-  onOpenFitFinder: () => void;
   onOpenAdmin?: () => void;
+  onOpenStyleDna?: () => void;
+  onOpenWardrobeVault?: () => void;
+  onOpenStylistChat?: () => void;
   cartCount: number;
   wishlistCount: number;
   onFilterCategory?: (category: string) => void;
@@ -28,14 +30,15 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenWishlist,
   onOpenCart,
   onOpenAuth,
-  onOpenFitFinder,
   onOpenAdmin,
+  onOpenStyleDna,
+  onOpenWardrobeVault,
+  onOpenStylistChat,
   cartCount,
   wishlistCount,
   onFilterCategory,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const isFitCalibrated = user?.style_dna?.is_scanned === 1;
 
   const handleNavClick = (tab: ActiveNavTab, categoryFilter?: string) => {
     setActiveTab(tab);
@@ -78,14 +81,12 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={() => handleNavClick('home')}
             className="cursor-pointer text-center group flex flex-col items-center justify-center py-1 transition-transform select-none"
           >
-            {/* Authentic Lotus Monogram Crest */}
             <img
               src="/images/tarveq-crest.png"
               alt="TARVEQ Crest"
               className="h-6 sm:h-9 lg:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105 drop-shadow-sm mb-0.5 sm:mb-1"
             />
 
-            {/* Prominent High-Fashion Wordmark in Signature Burgundy */}
             <div className="flex items-center justify-center">
               <span className="font-serif text-xl sm:text-3xl lg:text-[34px] tracking-[0.18em] sm:tracking-[0.22em] font-bold text-burgundy uppercase leading-none transition-colors group-hover:text-[#5c1c1d]">
                 TARVEQ
@@ -93,7 +94,7 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
 
             <p className="text-[8px] sm:text-[10px] text-charcoal-muted tracking-[0.26em] sm:tracking-[0.32em] font-light uppercase mt-0.5 sm:mt-1">
-              Atelier & Personalized Fit
+              Atelier & Luxury Fashion
             </p>
           </div>
 
@@ -128,52 +129,6 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
 
             <button
-              onClick={() => handleNavClick('shop-by-fit')}
-              className={`transition py-1 relative flex items-center space-x-1 ${
-                activeTab === 'shop-by-fit'
-                  ? 'text-burgundy font-semibold'
-                  : 'hover:text-burgundy text-charcoal'
-              }`}
-            >
-              <span>Shop by Fit</span>
-              {activeTab === 'shop-by-fit' && (
-                <span className="absolute bottom-0 left-0 w-full h-[2px] bg-burgundy rounded-full" />
-              )}
-            </button>
-
-            <button
-              onClick={() => handleNavClick('style-studio')}
-              className={`transition py-1 relative flex items-center space-x-1.5 ${
-                activeTab === 'style-studio'
-                  ? 'text-burgundy font-semibold'
-                  : 'hover:text-burgundy text-charcoal'
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5 text-gold" />
-              <span>AI Style Studio</span>
-              {activeTab === 'style-studio' && (
-                <span className="absolute bottom-0 left-0 w-full h-[2px] bg-burgundy rounded-full" />
-              )}
-            </button>
-
-            <button
-              onClick={() => handleNavClick('wardrobe')}
-              className={`transition py-1 relative flex items-center space-x-1.5 ${
-                activeTab === 'wardrobe'
-                  ? 'text-burgundy font-semibold'
-                  : 'hover:text-burgundy text-charcoal'
-              }`}
-            >
-              <span>My Wardrobe</span>
-              <span className="text-[10px] bg-gold text-white font-semibold px-1.5 py-0.2 rounded-full">
-                Vault
-              </span>
-              {activeTab === 'wardrobe' && (
-                <span className="absolute bottom-0 left-0 w-full h-[2px] bg-burgundy rounded-full" />
-              )}
-            </button>
-
-            <button
               onClick={() => handleNavClick('new-arrivals')}
               className={`transition py-1 relative ${
                 activeTab === 'new-arrivals'
@@ -187,11 +142,40 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </button>
 
+            <button
+              onClick={() => handleNavClick('orders')}
+              className={`transition py-1 relative ${
+                activeTab === 'orders'
+                  ? 'text-burgundy font-semibold'
+                  : 'hover:text-burgundy text-charcoal'
+              }`}
+            >
+              My Orders
+              {activeTab === 'orders' && (
+                <span className="absolute bottom-0 left-0 w-full h-[2px] bg-burgundy rounded-full" />
+              )}
+            </button>
+
+            <button
+              onClick={() => handleNavClick('ai-roadmap')}
+              className={`transition py-1 relative flex items-center space-x-1 ${
+                activeTab === 'ai-roadmap'
+                  ? 'text-burgundy font-semibold'
+                  : 'hover:text-burgundy text-charcoal'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-gold" />
+              <span>AI Roadmap</span>
+              {activeTab === 'ai-roadmap' && (
+                <span className="absolute bottom-0 left-0 w-full h-[2px] bg-burgundy rounded-full" />
+              )}
+            </button>
+
             {/* Atelier Studio Map Link */}
             <a
               href="#atelier-map"
               className="transition py-1 relative flex items-center space-x-1 text-charcoal hover:text-burgundy"
-              title="Visit our physical flagship studio in Indiranagar, Bengaluru"
+              title="Visit our physical flagship studio in Dehradun, Uttarakhand"
             >
               <MapPin className="w-3.5 h-3.5 text-gold" />
               <span>Atelier Map</span>
@@ -201,12 +185,48 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Right Utility Icons (Search, Wishlist, Account, Cart) */}
           <div className="flex items-center space-x-1 sm:space-x-4">
             
+            {/* Edge Style DNA Trigger */}
+            {onOpenStyleDna && (
+              <button
+                onClick={onOpenStyleDna}
+                className="hidden lg:flex items-center space-x-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-full bg-[#FAF7F2] text-[#7A2E2E] hover:bg-[#F3ECE1] border border-[#B8925A]/40 transition"
+                title="Scan Body Proportions & CIELAB Undertone"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[#B8925A]" />
+                <span>Style DNA</span>
+              </button>
+            )}
+
+            {/* Wardrobe Vault Trigger */}
+            {onOpenWardrobeVault && (
+              <button
+                onClick={onOpenWardrobeVault}
+                className="hidden lg:flex items-center space-x-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-full bg-[#FAF7F2] text-[#261B18] hover:bg-[#F3ECE1] border border-[#F3ECE1] transition"
+                title="Open Wardrobe Vault & SigLIP Matcher"
+              >
+                <Shirt className="w-3.5 h-3.5 text-[#7A2E2E]" />
+                <span>Vault</span>
+              </button>
+            )}
+
+            {/* Stylist Chatbot Trigger */}
+            {onOpenStylistChat && (
+              <button
+                onClick={onOpenStylistChat}
+                className="hidden lg:flex items-center space-x-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-[#7A2E2E] text-white hover:bg-[#5E2222] border border-[#B8925A] shadow-sm transition"
+                title="Chat with TARVEQ Personal Stylist AI"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[#B8925A] animate-pulse" />
+                <span>Ask Stylist ✨</span>
+              </button>
+            )}
+
             {/* Desktop Search Icon */}
             <button
               onClick={onOpenSearch}
               className="hidden lg:flex items-center space-x-2 text-charcoal hover:text-burgundy p-2 rounded-full hover:bg-beige/50 transition"
               aria-label="Search products"
-              title="Search by name, fabric, occasion or colour"
+              title="Search by name, fabric, or category"
             >
               <Search className="w-5 h-5" />
             </button>
@@ -226,7 +246,7 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </button>
 
-            {/* User Profile / Fit Badge */}
+            {/* User Profile */}
             <button
               onClick={onOpenAuth}
               className="flex items-center space-x-1.5 p-1.5 sm:px-3 sm:py-1.5 rounded-full border border-beige-border bg-beige/40 hover:bg-beige/80 transition text-charcoal text-xs sm:text-sm font-medium"
@@ -256,18 +276,6 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
               )}
             </button>
-
-            {/* Fit Status Badge (if calibrated) */}
-            {isFitCalibrated && (
-              <button
-                onClick={onOpenFitFinder}
-                className="hidden xl:flex items-center space-x-1 bg-sage-light border border-sage-border text-sage px-2.5 py-1 rounded-full text-xs font-medium hover:bg-sage hover:text-white transition"
-                title={`Calibrated: ${user?.style_dna?.undertone || 'Fit Profile Active'}`}
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-sage" />
-                <span>Fit Verified</span>
-              </button>
-            )}
 
             {/* Founder Admin Direct Access (if admin user) */}
             {user?.role === 'admin' && onOpenAdmin && (
@@ -307,62 +315,76 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
 
             <button
-              onClick={() => handleNavClick('shop-by-fit')}
-              className={`flex items-center justify-between text-left py-2 border-b border-beige/60 ${
-                activeTab === 'shop-by-fit' ? 'text-burgundy font-bold' : ''
-              }`}
-            >
-              <span>Shop by Fit (Petite / Regular / Tall)</span>
-              <ChevronRight className="w-4 h-4 text-charcoal-muted" />
-            </button>
-
-            <button
-              onClick={() => handleNavClick('style-studio')}
-              className={`flex items-center justify-between text-left py-2 border-b border-beige/60 ${
-                activeTab === 'style-studio' ? 'text-burgundy font-bold' : ''
-              }`}
-            >
-              <div className="flex items-center space-x-2">
-                <Sparkles className="w-4 h-4 text-gold" />
-                <span>AI Style Studio</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-charcoal-muted" />
-            </button>
-
-            <button
-              onClick={() => handleNavClick('wardrobe')}
-              className={`flex items-center justify-between text-left py-2 border-b border-beige/60 ${
-                activeTab === 'wardrobe' ? 'text-burgundy font-bold' : ''
-              }`}
-            >
-              <div className="flex items-center space-x-2">
-                <span>My Wardrobe Vault</span>
-                <span className="text-[10px] bg-gold text-white px-1.5 py-0.2 rounded-full">
-                  15% Off
-                </span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-charcoal-muted" />
-            </button>
-
-            <button
               onClick={() => handleNavClick('new-arrivals')}
               className={`flex items-center justify-between text-left py-2 border-b border-beige/60 ${
                 activeTab === 'new-arrivals' ? 'text-burgundy font-bold' : ''
               }`}
             >
-              <span>New Arrivals (Drop 01)</span>
+              <span>New Arrivals</span>
               <ChevronRight className="w-4 h-4 text-charcoal-muted" />
             </button>
 
             <button
-              onClick={() => { onOpenFitFinder(); setMobileMenuOpen(false); }}
-              className="flex items-center justify-between text-left py-2.5 text-burgundy font-semibold"
+              onClick={() => handleNavClick('orders')}
+              className={`flex items-center justify-between text-left py-2 border-b border-beige/60 ${
+                activeTab === 'orders' ? 'text-burgundy font-bold' : ''
+              }`}
             >
-              <span>TARVEQ Fit Finder</span>
-              <span className="text-xs bg-burgundy-light text-burgundy px-2 py-0.5 rounded-full">
-                3-Sec Wizard
-              </span>
+              <span>My Orders</span>
+              <ChevronRight className="w-4 h-4 text-charcoal-muted" />
             </button>
+
+            <button
+              onClick={() => handleNavClick('ai-roadmap')}
+              className={`flex items-center justify-between text-left py-2 border-b border-beige/60 ${
+                activeTab === 'ai-roadmap' ? 'text-burgundy font-bold' : ''
+              }`}
+            >
+              <div className="flex items-center space-x-2">
+                <Sparkles className="w-4 h-4 text-gold" />
+                <span>AI Roadmap & Models</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-charcoal-muted" />
+            </button>
+
+            {onOpenStyleDna && (
+              <button
+                onClick={() => { setMobileMenuOpen(false); onOpenStyleDna(); }}
+                className="flex items-center justify-between text-left py-2 border-b border-beige/60 text-charcoal"
+              >
+                <div className="flex items-center space-x-2">
+                  <Sparkles className="w-4 h-4 text-[#7A2E2E]" />
+                  <span>Edge Style DNA Scanner</span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-charcoal-muted" />
+              </button>
+            )}
+
+            {onOpenWardrobeVault && (
+              <button
+                onClick={() => { setMobileMenuOpen(false); onOpenWardrobeVault(); }}
+                className="flex items-center justify-between text-left py-2 border-b border-beige/60 text-charcoal"
+              >
+                <div className="flex items-center space-x-2">
+                  <Shirt className="w-4 h-4 text-[#261B18]" />
+                  <span>Wardrobe Vault & Matcher</span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-charcoal-muted" />
+              </button>
+            )}
+
+            {onOpenStylistChat && (
+              <button
+                onClick={() => { setMobileMenuOpen(false); onOpenStylistChat(); }}
+                className="flex items-center justify-between text-left py-2 border-b border-beige/60 text-[#7A2E2E] font-bold"
+              >
+                <div className="flex items-center space-x-2">
+                  <Sparkles className="w-4 h-4 text-[#B8925A]" />
+                  <span>Ask Atelier Stylist (AI Chat)</span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-charcoal-muted" />
+              </button>
+            )}
 
             {/* Mobile Atelier Map Link */}
             <a
@@ -372,7 +394,7 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <div className="flex items-center space-x-2">
                 <MapPin className="w-4 h-4 text-gold" />
-                <span>Visit Bengaluru Atelier (Map)</span>
+                <span>Visit Dehradun Atelier (Map)</span>
               </div>
               <ChevronRight className="w-4 h-4 text-charcoal-muted" />
             </a>
@@ -397,7 +419,7 @@ export const Header: React.FC<HeaderProps> = ({
               {user ? `Account: ${user.name}` : 'Sign In / Register'}
             </button>
             <button onClick={() => { handleNavClick('orders'); }} className="hover:text-burgundy py-1">
-              My Orders & AWB Tracking
+              My Orders
             </button>
           </div>
         </div>

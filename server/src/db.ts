@@ -104,8 +104,8 @@ export function initDatabase() {
       discount INTEGER NOT NULL,
       total_amount INTEGER NOT NULL,
       payment_id TEXT,
-      payment_method TEXT DEFAULT 'Razorpay UPI',
-      payment_status TEXT NOT NULL DEFAULT 'Paid',
+      payment_method TEXT DEFAULT 'Manual UPI',
+      payment_status TEXT NOT NULL DEFAULT 'Pending',
       fulfillment_status TEXT NOT NULL DEFAULT 'New Order',
       awb_tracking_code TEXT,
       courier_partner TEXT,
@@ -188,16 +188,16 @@ function seedData() {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       'user-admin-01',
-      'Tara Kapoor (Founder & Atelier Head)',
+      'Samruddhi & Vikash (Co-Founders)',
       'admin@auramodest.com',
       adminHash,
       '+91 98200 12345',
       'admin',
       JSON.stringify({
-        street: 'AURA Atelier Studio, 4th Floor, Indiranagar 100ft Road',
-        city: 'Bengaluru',
-        state: 'Karnataka',
-        pincode: '560038'
+        street: 'TARVEQ Atelier Studio, Rajpur Road',
+        city: 'Dehradun',
+        state: 'Uttarakhand',
+        pincode: '248001'
       }),
       JSON.stringify({
         is_scanned: 1,
@@ -229,10 +229,10 @@ function seedData() {
       '+91 98765 43210',
       'customer',
       JSON.stringify({
-        street: 'Flat 402, Magnolia Elegance, Koramangala 4th Block',
-        city: 'Bengaluru',
-        state: 'Karnataka',
-        pincode: '560034'
+        street: 'Flat 402, Rajpur Road Colony',
+        city: 'Dehradun',
+        state: 'Uttarakhand',
+        pincode: '248001'
       }),
       JSON.stringify({
         is_scanned: 1,

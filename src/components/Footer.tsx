@@ -1,23 +1,11 @@
 import React, { useState } from 'react';
-import { ArrowRight, Instagram, MessageCircle, Shield, Check, Lock, BarChart3, MapPin, Navigation, Clock, Phone } from 'lucide-react';
+import { ArrowRight, Instagram, MessageCircle, Check, Lock, MapPin, Navigation, Clock, Phone } from 'lucide-react';
 
 interface FooterProps {
   onNavClick: (tab: any) => void;
-  onOpenFitFinder: () => void;
-  onOpenColourStudio: () => void;
-  onOpenStyleStudio: () => void;
-  onOpenWardrobe: () => void;
-  onToggleInvestorDrawer?: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({
-  onNavClick,
-  onOpenFitFinder,
-  onOpenColourStudio,
-  onOpenStyleStudio,
-  onOpenWardrobe,
-  onToggleInvestorDrawer,
-}) => {
+export const Footer: React.FC<FooterProps> = ({ onNavClick }) => {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
 
@@ -54,17 +42,17 @@ export const Footer: React.FC<FooterProps> = ({
               </div>
 
               <h3 className="font-serif text-3xl sm:text-4xl font-medium text-white leading-tight">
-                Visit Our Bengaluru Atelier
+                Visit Our Dehradun Atelier
               </h3>
 
               <p className="text-sm text-[#F8F4EC]/80 leading-relaxed font-sans">
-                Experience in-person bespoke draping, body proportion calibration, and touch our zero-sheer double poplins and breathable cambrics firsthand.
+                Experience in-person bespoke draping, fitting, and touch our premium fabrics and breathable cambrics firsthand.
               </p>
 
               <div className="space-y-2.5 text-xs text-[#F8F4EC]/80 font-sans pt-1">
                 <div className="flex items-start space-x-2.5">
                   <MapPin className="w-4 h-4 text-gold flex-shrink-0 mt-0.5" />
-                  <span>AURA Atelier Studio, 4th Floor, 100ft Road, HAL 2nd Stage, Indiranagar, Bengaluru, Karnataka 560038</span>
+                  <span>TARVEQ Atelier Studio, Rajpur Road, Dehradun, Uttarakhand 248001</span>
                 </div>
                 <div className="flex items-center space-x-2.5">
                   <Clock className="w-4 h-4 text-gold flex-shrink-0" />
@@ -78,7 +66,7 @@ export const Footer: React.FC<FooterProps> = ({
 
               <div className="pt-2 flex flex-wrap gap-3">
                 <a
-                  href="https://maps.google.com/?q=100ft+Road+Indiranagar+Bengaluru"
+                  href="https://maps.google.com/?q=Rajpur+Road+Dehradun+Uttarakhand"
                   target="_blank"
                   rel="noreferrer"
                   className="bg-gold hover:bg-gold-hover text-charcoal font-sans text-xs font-semibold px-5 py-2.5 rounded-full transition flex items-center space-x-2 shadow-sm"
@@ -88,13 +76,13 @@ export const Footer: React.FC<FooterProps> = ({
                 </a>
 
                 <a
-                  href="https://wa.me/919307859693?text=Hello%20TARVEQ%20Atelier%2C%20I%20would%20like%20to%20book%20an%20in-person%20fitting%20appointment%20at%20your%20Indiranagar%20studio."
+                  href="https://wa.me/919307859693?text=Hello%20TARVEQ%20Atelier%2C%20I%20would%20like%20to%20inquire%20about%20your%20collection."
                   target="_blank"
                   rel="noreferrer"
                   className="bg-white/10 hover:bg-white/20 text-white border border-white/20 font-sans text-xs font-medium px-5 py-2.5 rounded-full transition flex items-center space-x-2"
                 >
                   <MessageCircle className="w-3.5 h-3.5 text-sage" />
-                  <span>Book Fitting on WhatsApp</span>
+                  <span>Order on WhatsApp</span>
                 </a>
               </div>
             </div>
@@ -103,7 +91,7 @@ export const Footer: React.FC<FooterProps> = ({
             <div className="lg:col-span-7 rounded-3xl overflow-hidden border border-gold/30 shadow-2xl relative h-[320px] sm:h-[380px] bg-charcoal-light">
               <iframe
                 title="TARVEQ Atelier Location Map"
-                src="https://maps.google.com/maps?q=100ft%20Road,%20Indiranagar,%20Bengaluru,%20Karnataka%20560038&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                src="https://maps.google.com/maps?q=Rajpur%20Road,%20Dehradun,%20Uttarakhand%20248001&t=&z=15&ie=UTF8&iwloc=&output=embed"
                 className="w-full h-full border-0 filter contrast-105"
                 loading="lazy"
                 allowFullScreen
@@ -114,10 +102,10 @@ export const Footer: React.FC<FooterProps> = ({
           </div>
         </div>
 
-        {/* Main 4-Column Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12 pb-14 border-b border-charcoal-border/70">
+        {/* Main 3-Column Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-12 pb-14 border-b border-charcoal-border/70">
           
-          {/* Column 1: TARVEQ ATELIER Brand & Story */}
+          {/* Column 1: Brand & Story */}
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
               <img
@@ -136,8 +124,13 @@ export const Footer: React.FC<FooterProps> = ({
             </div>
 
             <p className="text-sm text-[#F8F4EC]/80 font-sans leading-relaxed">
-              Premium Indian fashion and personalized clothing discovery. Mindfully tailored around your body measurements, natural undertones, and personal style.
+              Premium Indian modest fashion and handcrafted luxury wear. High-quality fabrics designed for comfortable elegance and timeless beauty.
             </p>
+
+            <div className="text-xs text-gold/90 font-sans">
+              <span>Co-Founders: </span>
+              <span className="font-semibold text-white">Samruddhi &amp; Vikash</span>
+            </div>
 
             <p className="text-xs text-gold font-serif italic">
               "Luxury in appearance. Simplicity in experience."
@@ -188,88 +181,34 @@ export const Footer: React.FC<FooterProps> = ({
               </li>
               <li>
                 <button
-                  onClick={() => onNavClick('shop-by-fit')}
+                  onClick={() => onNavClick('orders')}
                   className="hover:text-white transition"
                 >
-                  Shop by Fit (Petite / Regular / Tall)
+                  Track My Orders
                 </button>
               </li>
               <li>
                 <button
-                  onClick={() => onNavClick('shop-all')}
-                  className="hover:text-white transition"
+                  onClick={() => onNavClick('ai-roadmap')}
+                  className="hover:text-gold transition text-gold/90 flex items-center space-x-1"
                 >
-                  Breathable Cotton Co-ords
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onNavClick('shop-all')}
-                  className="hover:text-white transition"
-                >
-                  Modest Tunics & Trousers
+                  <span>✨ AI Roadmap & Models</span>
                 </button>
               </li>
             </ul>
           </div>
 
-          {/* Column 3: PERSONALIZED EXPERIENCE */}
-          <div className="space-y-3">
-            <h4 className="font-serif text-lg font-medium text-gold tracking-wide">
-              Personalized Experience
-            </h4>
-            <ul className="space-y-2.5 text-sm text-[#F8F4EC]/80 font-sans">
-              <li>
-                <button
-                  onClick={onOpenFitFinder}
-                  className="hover:text-white transition flex items-center space-x-1.5"
-                >
-                  <span>TARVEQ Fit Finder</span>
-                  <span className="text-[10px] bg-burgundy text-white px-1.5 py-0.2 rounded-full">
-                    AI Fit
-                  </span>
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={onOpenColourStudio}
-                  className="hover:text-white transition"
-                >
-                  TARVEQ Colour Studio
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={onOpenStyleStudio}
-                  className="hover:text-white transition"
-                >
-                  AI Style Studio
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={onOpenWardrobe}
-                  className="hover:text-white transition flex items-center space-x-1.5"
-                >
-                  <span>My TARVEQ Wardrobe</span>
-                  <span className="text-[10px] bg-gold text-white px-1.5 py-0.2 rounded-full font-bold">
-                    15% Off
-                  </span>
-                </button>
-              </li>
-            </ul>
-          </div>
-
-          {/* Column 4: CUSTOMER SUPPORT & NEWSLETTER */}
+          {/* Column 3: CUSTOMER SUPPORT & NEWSLETTER */}
           <div className="space-y-4">
             <h4 className="font-serif text-lg font-medium text-gold tracking-wide">Customer Support</h4>
             <ul className="space-y-2 text-sm text-[#F8F4EC]/80 font-sans">
-              <li>Indiranagar 100ft Road, Bengaluru 560038</li>
+              <li>TARVEQ Atelier, Rajpur Road, Dehradun, Uttarakhand 248001</li>
+              <li>Co-Founders: <span className="text-white font-medium">Samruddhi &amp; Vikash</span></li>
               <li>WhatsApp Admin 1: <a href="https://wa.me/919307859693" target="_blank" rel="noreferrer" className="hover:text-gold transition font-mono">+91 9307859693</a></li>
               <li>WhatsApp Admin 2: <a href="https://wa.me/918809271583" target="_blank" rel="noreferrer" className="hover:text-gold transition font-mono">+91 8809271583</a></li>
-              <li>Email: concierge@tarveqatelier.com</li>
+              <li>Email: contact@tarveqatelier.com</li>
               <li className="text-xs text-gold/90 pt-1">
-                Complimentary 15-day exchanges on all orders
+                WhatsApp-first ordering with personal assistance
               </li>
             </ul>
 
@@ -279,7 +218,7 @@ export const Footer: React.FC<FooterProps> = ({
               {subscribed ? (
                 <div className="flex items-center space-x-1.5 text-xs text-sage font-medium bg-white/5 p-2 rounded-lg">
                   <Check className="w-3.5 h-3.5" />
-                  <span>Thank you for joining our private circle.</span>
+                  <span>Thank you for subscribing.</span>
                 </div>
               ) : (
                 <form onSubmit={handleSubscribe} className="flex items-center space-x-1.5">
@@ -305,35 +244,23 @@ export const Footer: React.FC<FooterProps> = ({
 
         </div>
 
-        {/* Bottom Strip: Trust, Payment & Copyright */}
+        {/* Bottom Strip: Trust & Copyright */}
         <div className="pt-8 flex flex-col md:flex-row items-center justify-between text-xs text-[#F8F4EC]/60 gap-4">
           <div className="flex flex-wrap items-center gap-4 text-center md:text-left">
-            <span>© 2026 TARVEQ ATELIER D2C PVT LTD. All rights reserved.</span>
+            <span>© 2026 TARVEQ ATELIER. All rights reserved.</span>
             <span>•</span>
             <span>Privacy Policy</span>
             <span>•</span>
             <span>Terms of Service</span>
             <span>•</span>
-            <span>Shipping & Exchanges</span>
+            <span>Direct WhatsApp Ordering</span>
           </div>
 
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-1 text-gold">
               <Lock className="w-3.5 h-3.5" />
-              <span className="text-[11px]">Razorpay 256-Bit SSL Encrypted</span>
+              <span className="text-[11px]">Direct WhatsApp Verified Orders</span>
             </div>
-
-            {/* Unobtrusive Series-A Pitch Deck Trigger for investor demos */}
-            {onToggleInvestorDrawer && (
-              <button
-                onClick={onToggleInvestorDrawer}
-                className="flex items-center space-x-1 text-[#F8F4EC]/40 hover:text-gold transition text-[11px] underline underline-offset-2"
-                title="Open Series-A Metrics & Pitch Deck"
-              >
-                <BarChart3 className="w-3 h-3" />
-                <span>Investor Deck</span>
-              </button>
-            )}
           </div>
         </div>
 

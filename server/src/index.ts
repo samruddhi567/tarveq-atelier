@@ -7,22 +7,17 @@ import crypto from 'node:crypto';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import multer from 'multer';
-import Razorpay from 'razorpay';
 import dotenv from 'dotenv';
 import { db, initDatabase, getNextOrderId } from './db.js';
-import { shiprocketService } from './services/shiprocketService.js';
 import {
   generateWhatsAppUrls,
   sendCloudApiNotification,
   ADMIN_PHONE_1,
   ADMIN_PHONE_2
 } from './services/whatsappNotificationService.js';
-import {
-  generateSecret,
-  computeTOTP,
-  verifyTOTP,
-  getOtpAuthUrl
-} from './services/totpService.js';
+import { computeWardrobeMatches } from './services/visualEmbeddingService.js';
+import { generateEditorialCopy, explainStylistFit } from './services/langchainStylistService.js';
+import { handleStylistChat } from './services/stylistChatService.js';
 
 dotenv.config();
 
@@ -41,7 +36,7 @@ if (!fs.existsSync(paymentsUploadsDir)) {
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const JWT_SECRET = process.env.JWT_SECRET || 'aura_atelier_production_jwt_secret_2026_key';
+const JWT_SECRET = process.env.JWT_SECRET || 'tarveq_atelier_jwt_secret_2026_key';
 
 app.use(cors());
 app.use(express.json({ limit: '15mb' }));
@@ -74,7 +69,7 @@ const storage = multer.diskStorage({
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     const ext = path.extname(file.originalname) || '.jpg';
-    cb(null, 'aura-prod-' + uniqueSuffix + ext);
+    cb(null, 'tarveq-prod-' + uniqueSuffix + ext);
   },
 });
 const upload = multer({ storage });
@@ -92,19 +87,6 @@ const paymentProofStorage = multer.diskStorage({
 });
 const uploadPaymentProof = multer({ storage: paymentProofStorage });
 
-// Razorpay Instance
-const razorpayKeyId = process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder_key';
-const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET || 'rzp_test_placeholder_secret';
-let razorpayInstance: Razorpay | null = null;
-try {
-  razorpayInstance = new Razorpay({
-    key_id: razorpayKeyId,
-    key_secret: razorpayKeySecret,
-  });
-} catch (e) {
-  console.warn('[Razorpay] Running in Test Mode Simulator');
-}
-
 // =========================================================================
 // AUTH MIDDLEWARE
 // =========================================================================
@@ -117,7 +99,7 @@ function authenticateToken(req: AuthRequest, res: Response, next: NextFunction) 
   const token = authHeader && authHeader.split(' ')[1];
 
   if (!token || token === 'null' || token === 'undefined') {
-    const demoUser = db.prepare("SELECT * FROM users WHERE email = 'customer@auramodest.com'").get() as any;
+    const demoUser = db.prepare("SELECT * FROM users WHERE email = 'customer@tarveqatelier.com' OR email = 'customer@auramodest.com' LIMIT 1").get() as any;
     if (demoUser) {
       req.user = { id: demoUser.id, email: demoUser.email, role: demoUser.role, name: demoUser.name };
       return next();
@@ -127,7 +109,7 @@ function authenticateToken(req: AuthRequest, res: Response, next: NextFunction) 
 
   jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
     if (err) {
-      const demoUser = db.prepare("SELECT * FROM users WHERE email = 'customer@auramodest.com'").get() as any;
+      const demoUser = db.prepare("SELECT * FROM users WHERE email = 'customer@tarveqatelier.com' OR email = 'customer@auramodest.com' LIMIT 1").get() as any;
       if (demoUser) {
         req.user = { id: demoUser.id, email: demoUser.email, role: demoUser.role, name: demoUser.name };
         return next();
@@ -142,7 +124,7 @@ function authenticateToken(req: AuthRequest, res: Response, next: NextFunction) 
 function requireAdmin(req: AuthRequest, res: Response, next: NextFunction) {
   authenticateToken(req, res, () => {
     if (req.user?.role !== 'admin') {
-      return res.status(403).json({ error: 'Access restricted to AURA Founder / Atelier Admins only' });
+      return res.status(403).json({ error: 'Access restricted to TARVEQ Founder / Atelier Admins only' });
     }
     next();
   });
@@ -234,10 +216,10 @@ app.post('/api/auth/register', (req: Request, res: Response) => {
     const id = `user-${Date.now()}`;
     const passwordHash = bcrypt.hashSync(password, 10);
     const defaultAddress = shippingAddress || {
-      street: '12th Cross, Indiranagar',
-      city: 'Bengaluru',
-      state: 'Karnataka',
-      pincode: '560038',
+      street: 'Rajpur Road, Clock Tower',
+      city: 'Dehradun',
+      state: 'Uttarakhand',
+      pincode: '248001',
     };
     const defaultStyleDna = {
       is_scanned: 0,
@@ -293,21 +275,6 @@ app.post('/api/auth/login', (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    // Google Authenticator 2FA Gate
-    if (row.two_factor_enabled === 1) {
-      const tempToken = jwt.sign(
-        { id: row.id, email: row.email, role: row.role, name: row.name, stage: '2fa' },
-        JWT_SECRET,
-        { expiresIn: '5m' }
-      );
-      return res.json({
-        success: true,
-        requires2FA: true,
-        tempToken,
-        message: 'Google Authenticator 2FA verification required'
-      });
-    }
-
     const user = {
       id: row.id,
       name: row.name,
@@ -328,142 +295,16 @@ app.post('/api/auth/login', (req: Request, res: Response) => {
   }
 });
 
-// Login 2FA Verification Endpoint
-app.post('/api/auth/login/2fa', (req: Request, res: Response) => {
-  try {
-    const { tempToken, code } = req.body;
-    if (!tempToken || !code) {
-      return res.status(400).json({ error: 'Temporary token and 6-digit code are required' });
-    }
-
-    let decoded: any;
-    try {
-      decoded = jwt.verify(tempToken, JWT_SECRET);
-    } catch {
-      return res.status(401).json({ error: '2FA session expired. Please log in again.' });
-    }
-
-    if (decoded.stage !== '2fa') {
-      return res.status(401).json({ error: 'Invalid 2FA session' });
-    }
-
-    const row = db.prepare('SELECT * FROM users WHERE id = ?').get(decoded.id) as any;
-    if (!row || !row.two_factor_secret) {
-      return res.status(400).json({ error: 'Google Authenticator is not configured for this account' });
-    }
-
-    const isValid = verifyTOTP(String(code).trim(), row.two_factor_secret);
-    if (!isValid) {
-      return res.status(401).json({ error: 'Invalid Google Authenticator code. Check the 6-digit code and try again.' });
-    }
-
-    const user = {
-      id: row.id,
-      name: row.name,
-      email: row.email,
-      phone: row.phone,
-      role: row.role,
-      two_factor_enabled: true,
-      shipping_address: JSON.parse(row.shipping_address || '{}'),
-      style_dna: JSON.parse(row.style_dna || '{}'),
-      saved_wardrobe_vault: JSON.parse(row.saved_wardrobe_vault || '[]'),
-    };
-
-    const token = jwt.sign({ id: user.id, email: user.email, role: user.role, name: user.name }, JWT_SECRET, { expiresIn: '7d' });
-    res.json({ success: true, token, user });
-  } catch (error) {
-    console.error('2FA verification error:', error);
-    res.status(500).json({ error: 'Failed to verify Google Authenticator code' });
-  }
-});
-
-// 2FA Management Endpoints (Generate QR Code & Secret)
-app.post('/api/auth/2fa/generate', authenticateToken, (req: AuthRequest, res: Response) => {
-  try {
-    const user = req.user;
-    if (!user) return res.status(401).json({ error: 'Unauthorized' });
-
-    const secret = generateSecret();
-    const otpauthUrl = getOtpAuthUrl(user.email, secret, 'TARVEQ Atelier');
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(otpauthUrl)}`;
-
-    // Store the pending secret on user
-    db.prepare('UPDATE users SET two_factor_secret = ? WHERE id = ?').run(secret, user.id);
-
-    res.json({
-      success: true,
-      secret,
-      otpauthUrl,
-      qrCodeUrl,
-      issuer: 'TARVEQ Atelier',
-      account: user.email,
-    });
-  } catch (error) {
-    console.error('Generate 2FA error:', error);
-    res.status(500).json({ error: 'Failed to generate 2FA secret' });
-  }
-});
-
-// 2FA Enable Endpoint (Verify initial code and set active)
-app.post('/api/auth/2fa/enable', authenticateToken, (req: AuthRequest, res: Response) => {
-  try {
-    const user = req.user;
-    const { token } = req.body;
-    if (!user) return res.status(401).json({ error: 'Unauthorized' });
-    if (!token) return res.status(400).json({ error: '6-digit verification code is required' });
-
-    const row = db.prepare('SELECT two_factor_secret FROM users WHERE id = ?').get(user.id) as any;
-    if (!row || !row.two_factor_secret) {
-      return res.status(400).json({ error: 'No 2FA setup found. Please generate a QR code first.' });
-    }
-
-    const isValid = verifyTOTP(String(token).trim(), row.two_factor_secret);
-    if (!isValid) {
-      return res.status(400).json({ error: 'Incorrect 6-digit code. Please verify the time on your phone and try again.' });
-    }
-
-    db.prepare('UPDATE users SET two_factor_enabled = 1 WHERE id = ?').run(user.id);
-    res.json({ success: true, message: 'Google Authenticator 2FA activated successfully!' });
-  } catch (error) {
-    console.error('Enable 2FA error:', error);
-    res.status(500).json({ error: 'Failed to enable Google Authenticator' });
-  }
-});
-
-// 2FA Disable Endpoint
-app.post('/api/auth/2fa/disable', authenticateToken, (req: AuthRequest, res: Response) => {
-  try {
-    const user = req.user;
-    const { token } = req.body;
-    if (!user) return res.status(401).json({ error: 'Unauthorized' });
-
-    const row = db.prepare('SELECT two_factor_secret FROM users WHERE id = ?').get(user.id) as any;
-    if (!row || !row.two_factor_secret) {
-      return res.status(400).json({ error: '2FA is not active' });
-    }
-
-    if (token) {
-      const isValid = verifyTOTP(String(token).trim(), row.two_factor_secret);
-      if (!isValid) {
-        return res.status(400).json({ error: 'Invalid Google Authenticator code.' });
-      }
-    }
-
-    db.prepare('UPDATE users SET two_factor_enabled = 0, two_factor_secret = NULL WHERE id = ?').run(user.id);
-    res.json({ success: true, message: 'Google Authenticator 2FA has been disabled.' });
-  } catch (error) {
-    console.error('Disable 2FA error:', error);
-    res.status(500).json({ error: 'Failed to disable 2FA' });
-  }
-});
-
 // One-Click Demo Login (Customer or Admin)
 app.post('/api/auth/demo-login', (req: Request, res: Response) => {
   try {
     const { role = 'customer' } = req.body;
-    const targetEmail = role === 'admin' ? 'admin@auramodest.com' : 'customer@auramodest.com';
-
-    const row = db.prepare('SELECT * FROM users WHERE email = ?').get(targetEmail) as any;
+    const targetEmail = role === 'admin' ? 'admin@tarveqatelier.com' : 'customer@tarveqatelier.com';
+    let row = db.prepare('SELECT * FROM users WHERE email = ?').get(targetEmail) as any;
+    if (!row) {
+      const fallbackEmail = role === 'admin' ? 'admin@auramodest.com' : 'customer@auramodest.com';
+      row = db.prepare('SELECT * FROM users WHERE email = ?').get(fallbackEmail) as any;
+    }
     if (!row) {
       return res.status(404).json({ error: 'Demo account not found' });
     }
@@ -519,7 +360,7 @@ app.get('/api/auth/me', (req: Request, res: Response) => {
 
     if (!token || token === 'null' || token === 'undefined') {
       // Fallback to customer-demo for unauthenticated guest browsing
-      const demoUser = db.prepare("SELECT * FROM users WHERE email = 'customer@auramodest.com'").get() as any;
+      const demoUser = db.prepare("SELECT * FROM users WHERE email = 'customer@tarveqatelier.com' OR email = 'customer@auramodest.com' LIMIT 1").get() as any;
       if (demoUser) {
         const demoToken = jwt.sign(
           { id: demoUser.id, email: demoUser.email, role: demoUser.role, name: demoUser.name },
@@ -606,21 +447,31 @@ app.post('/api/auth/update-profile', authenticateToken, (req: AuthRequest, res: 
   }
 });
 
-// Persistent Style DNA Calibration
+// Edge Style DNA Calibration (Saves numerical ratios & CIELAB undertones)
 app.post('/api/style-dna', (req: Request, res: Response) => {
   try {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    let targetUserId = req.body.userId || 'user-customer-demo';
+
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET) as any;
+        if (decoded && decoded.id) targetUserId = decoded.id;
+      } catch {}
+    }
+
     const {
-      userId,
-      height = 162,
-      buildProportion = 'Regular',
+      height = 164,
+      buildProportion = 'Regular Modest',
       modestyPreference = 'Balanced Modest',
       skinUndertone = 'Warm Golden',
-      shoulderCm = 38.5,
-      waistCm = 72.0,
+      shoulderCm = 39.0,
+      waistCm = 72.5,
       hipCm = 98.0,
+      lab = { L: 62.5, a: 14.8, b: 22.4 },
     } = req.body;
 
-    const targetUserId = userId || 'user-customer-demo';
     const styleDnaData = {
       is_scanned: 1,
       height,
@@ -630,6 +481,7 @@ app.post('/api/style-dna', (req: Request, res: Response) => {
       shoulder_cm: shoulderCm,
       waist_cm: waistCm,
       hip_cm: hipCm,
+      lab,
       calibrated_at: new Date().toISOString(),
     };
 
@@ -641,89 +493,20 @@ app.post('/api/style-dna', (req: Request, res: Response) => {
 
     const updated = db.prepare('SELECT * FROM users WHERE id = ?').get(targetUserId) as any;
 
-    let paletteName = 'Warm Golden Honey & Spiced Terracotta';
-    let swatches = [
-      { name: 'Warm Terracotta', hex: '#C86D51' },
-      { name: 'Spiced Ochre', hex: '#C5A059' },
-      { name: 'Warm Ivory', hex: '#FAF7F2' },
-      { name: 'Tuscan Olive', hex: '#5E6E58' },
-      { name: 'Deep Espresso', hex: '#1E1B18' },
-    ];
-
-    if (skinUndertone === 'Olive') {
-      paletteName = 'Olive Earth & Muted Moss';
-      swatches = [
-        { name: 'Sage Olive', hex: '#5E6E58' },
-        { name: 'Toasted Cinnamon', hex: '#9A5B42' },
-        { name: 'Warm Sand', hex: '#F2ECE1' },
-        { name: 'Charcoal Umber', hex: '#2A2521' },
-        { name: 'Subtle Gold', hex: '#C49A45' },
-      ];
-    } else if (skinUndertone === 'Deep Espresso') {
-      paletteName = 'Rich Espresso & Burnished Rust';
-      swatches = [
-        { name: 'Deep Espresso', hex: '#1E1B18' },
-        { name: 'Burnished Terracotta', hex: '#A85138' },
-        { name: 'Rich Amber', hex: '#B87A36' },
-        { name: 'Soft Sand', hex: '#E0D4C3' },
-        { name: 'Deep Emerald', hex: '#3B5244' },
-      ];
-    } else if (skinUndertone === 'Cool') {
-      paletteName = 'Cool Rose Slate & Mineral Charcoal';
-      swatches = [
-        { name: 'Mineral Charcoal', hex: '#3D4148' },
-        { name: 'Cool Alabaster', hex: '#F7F6F4' },
-        { name: 'Dusty Rosewood', hex: '#B88279' },
-        { name: 'Sage Heather', hex: '#687358' },
-        { name: 'Muted Pewter', hex: '#8C9298' },
-      ];
-    }
-
     res.json({
       success: true,
-      message: 'Style DNA saved permanently',
+      message: 'Style DNA calibrated permanently via Edge Vision',
       user: {
-        id: updated.id,
-        name: updated.name,
-        email: updated.email,
-        role: updated.role,
+        id: updated?.id || targetUserId,
+        name: updated?.name || 'Client',
+        email: updated?.email || 'customer@tarveqatelier.com',
+        role: updated?.role || 'customer',
         style_dna: styleDnaData,
-      },
-      palette: {
-        paletteName,
-        undertone: skinUndertone,
-        swatches,
-        confidencePct: 98.8,
-        projectedReturnRateReduction: '78.8% reduction vs conventional D2C',
       },
     });
   } catch (error) {
     console.error('Style DNA error:', error);
-    res.status(500).json({ error: 'Failed to calibrate Style DNA' });
-  }
-});
-
-// Reset Style DNA (for demo testing)
-app.post('/api/user/reset', (req: Request, res: Response) => {
-  try {
-    const { userId = 'user-customer-demo' } = req.body;
-    const resetDna = {
-      is_scanned: 0,
-      height: 162,
-      build_proportion: 'Regular',
-      modesty_preference: 'Balanced Modest',
-      undertone: 'Warm Golden',
-      shoulder_cm: 38.5,
-      bust_cm: 90.0,
-      waist_cm: 72.0,
-      hip_cm: 98.0,
-      calibrated_at: null,
-    };
-
-    db.prepare('UPDATE users SET style_dna = ? WHERE id = ?').run(JSON.stringify(resetDna), userId);
-    res.json({ success: true, message: 'Style DNA reset to unscanned', style_dna: resetDna });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to reset user' });
+    res.status(500).json({ error: 'Failed to save Style DNA' });
   }
 });
 
@@ -847,6 +630,76 @@ app.post('/api/admin/products', requireAdmin, upload.array('photos', 5), (req: A
   }
 });
 
+// Admin: AI Auto-Generate Editorial Copy & Modesty Tags (LangChain / Qwen / Llama)
+app.post('/api/admin/generate-copy', requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const { name, category, fabric_spec, fabric_opacity } = req.body;
+    const copy = await generateEditorialCopy({
+      name,
+      category,
+      fabricSpec: fabric_spec,
+      fabricOpacity: fabric_opacity,
+    });
+    res.json({ success: true, copy });
+  } catch (error: any) {
+    console.error('Error generating copy:', error);
+    res.status(500).json({ error: 'Failed to generate editorial copy' });
+  }
+});
+
+// Product Page: "Ask TARVEQ Stylist" Dynamic Fit Explanation
+app.post('/api/stylist/explain-fit', async (req: Request, res: Response) => {
+  try {
+    const { product, userStyleDna } = req.body;
+    if (!product) return res.status(400).json({ error: 'Product required' });
+    const explanation = await explainStylistFit(product, userStyleDna);
+    res.json({ success: true, explanation });
+  } catch (error: any) {
+    res.status(500).json({ error: 'Failed to get stylist explanation' });
+  }
+});
+
+// Context-Aware Personal Stylist AI Chatbot (LangChain / Qwen / Llama)
+app.post('/api/stylist-chat', async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    let userId = req.body.userId || 'user-customer-demo';
+
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET) as any;
+        if (decoded?.id) userId = decoded.id;
+      } catch {}
+    }
+
+    const { message, sessionId = `session-${userId}` } = req.body;
+    if (!message || message.trim().length === 0) {
+      return res.status(400).json({ error: 'Message cannot be empty' });
+    }
+
+    const chatResponse = await handleStylistChat(sessionId, message.trim(), userId);
+
+    // If recommended product IDs were returned, enrich with product details from SQLite
+    let recommendedProducts: any[] = [];
+    if (chatResponse.recommended_product_ids && chatResponse.recommended_product_ids.length > 0) {
+      for (const pid of chatResponse.recommended_product_ids) {
+        const p = db.prepare('SELECT id, name, category, price, image_url, default_match_score FROM products WHERE id = ?').get(pid) as any;
+        if (p) recommendedProducts.push(p);
+      }
+    }
+
+    res.json({
+      success: true,
+      reply: chatResponse.reply_text,
+      recommendedProducts,
+    });
+  } catch (error: any) {
+    console.error('Stylist chat error:', error);
+    res.status(500).json({ error: 'Atelier stylist service unavailable' });
+  }
+});
+
 // Admin: Update Stock Inventory Matrix
 app.put('/api/admin/products/:id/stock', requireAdmin, (req: AuthRequest, res: Response) => {
   try {
@@ -864,177 +717,7 @@ app.put('/api/admin/products/:id/stock', requireAdmin, (req: AuthRequest, res: R
 });
 
 // =========================================================================
-// 3. PAYMENT GATEWAY (RAZORPAY INDIA & SIMULATOR)
-// =========================================================================
-
-// Create Razorpay Order
-app.post('/api/payments/create-order', (req: Request, res: Response) => {
-  try {
-    const { items = [], userId } = req.body;
-
-    if (!items || items.length === 0) {
-      return res.status(400).json({ error: 'Cart is empty' });
-    }
-
-    // Check inventory stock for each item variant
-    for (const item of items) {
-      const prod = db.prepare('SELECT name, stock_inventory FROM products WHERE id = ?').get(item.id) as any;
-      if (prod) {
-        const inv = JSON.parse(prod.stock_inventory || '{}');
-        const size = item.size || 'M';
-        const length = item.length || 'Regular';
-        const available = inv[size]?.[length] ?? 5;
-
-        if (available <= 0) {
-          return res.status(400).json({
-            error: 'OUT_OF_STOCK',
-            message: `"${prod.name}" (${size} / ${length}) is currently sold out. Please join the restock waitlist.`,
-          });
-        }
-      }
-    }
-
-    // Calculate total in paise (1 INR = 100 paise)
-    let subtotal = 0;
-    const isCapsule = items.length >= 2;
-    for (const it of items) {
-      subtotal += (it.price || 1299) * (it.quantity || 1);
-    }
-    const discount = isCapsule ? Math.round(subtotal * 0.15) : 0;
-    const finalAmountINR = subtotal - discount;
-    const amountInPaise = finalAmountINR * 100;
-
-    const demoOrderId = `order_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-
-    res.json({
-      success: true,
-      order: {
-        id: demoOrderId,
-        amount: amountInPaise,
-        currency: 'INR',
-        amount_inr: finalAmountINR,
-        subtotal,
-        discount,
-      },
-      key_id: razorpayKeyId,
-      is_simulator: !process.env.RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET.includes('placeholder'),
-    });
-  } catch (error) {
-    console.error('Payment order creation error:', error);
-    res.status(500).json({ error: 'Failed to initiate payment' });
-  }
-});
-
-// Verify Payment & Execute Order
-app.post('/api/payments/verify', (req: Request, res: Response) => {
-  try {
-    const {
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature,
-      userId = 'user-customer-demo',
-      items = [],
-      shippingAddress,
-      customTailoring = { length: 'Regular', coverage: 'Standard Modest' },
-      paymentMethod = 'UPI (Google Pay / PhonePe)',
-    } = req.body;
-
-    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId) as any;
-    const styleDna = user ? JSON.parse(user.style_dna || '{}') : null;
-
-    // FIT-GATE VERIFICATION
-    if (!styleDna || styleDna.is_scanned !== 1) {
-      return res.status(403).json({
-        error: 'FIT_GATE_BLOCKED',
-        message: 'To guarantee a zero-return fit, complete your 3-second Style DNA scan first.',
-      });
-    }
-
-    // Calculate totals
-    let subtotal = 0;
-    const isCapsule = items.length >= 2;
-    for (const it of items) {
-      subtotal += (it.price || 1299) * (it.quantity || 1);
-    }
-    const discount = isCapsule ? Math.round(subtotal * 0.15) : 0;
-    const total = subtotal - discount;
-
-    // Atomic Stock Deduction per variant in SQLite
-    for (const it of items) {
-      const prod = db.prepare('SELECT id, stock_inventory FROM products WHERE id = ?').get(it.id) as any;
-      if (prod) {
-        const inv = JSON.parse(prod.stock_inventory || '{}');
-        const size = it.size || 'M';
-        const length = it.length || customTailoring?.length || 'Regular';
-
-        if (inv[size] && inv[size][length] !== undefined) {
-          inv[size][length] = Math.max(0, inv[size][length] - (it.quantity || 1));
-          db.prepare('UPDATE products SET stock_inventory = ? WHERE id = ?').run(JSON.stringify(inv), prod.id);
-        }
-      }
-    }
-
-    const orderId = `ORD-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-    const effectivePaymentId = razorpay_payment_id || `pay_${Date.now()}`;
-    const effectiveAddress = shippingAddress || JSON.parse(user?.shipping_address || '{}');
-
-    db.prepare(`
-      INSERT INTO orders (
-        id, user_id, customer_name, customer_phone, shipping_address,
-        items, subtotal, discount, total_amount, payment_id, payment_method,
-        payment_status, fulfillment_status, fit_gate_verified, custom_tailoring
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Paid', 'New Order', 1, ?)
-    `).run(
-      orderId,
-      userId,
-      user?.name || 'Valued Customer',
-      user?.phone || '+91 98765 43210',
-      JSON.stringify(effectiveAddress),
-      JSON.stringify(items),
-      subtotal,
-      discount,
-      total,
-      effectivePaymentId,
-      paymentMethod,
-      JSON.stringify(customTailoring)
-    );
-
-    // Simulated Instant WhatsApp & Email Founder Alert Toast/Log
-    const founderAlert = `
-==============================================================
-🔔 [AURA FOUNDER & ATELIER ALERT] New Paid Order ${orderId}!
-Customer: ${user?.name || 'Customer'} (${user?.phone || 'N/A'})
-Amount: ₹${total.toLocaleString('en-IN')} [PAID via ${paymentMethod}]
-Items: ${items.map((i: any) => `${i.name} (Size: ${i.size || 'M'}, Length: ${i.length || 'Regular'})`).join(', ')}
-Shipping Destination: ${effectiveAddress.city || 'Bengaluru'}, ${effectiveAddress.pincode || '560038'}
-Fit-Gate Certified: YES (Shoulder ${styleDna.shoulder_cm || 38.5}cm, Undertone: ${styleDna.undertone})
-==============================================================`;
-    console.log(founderAlert);
-
-    res.json({
-      success: true,
-      orderId,
-      paymentId: effectivePaymentId,
-      total,
-      paymentStatus: 'Paid',
-      fulfillmentStatus: 'New Order',
-      founderAlertMessage: `Paid order ${orderId} received from ${user?.name}. Notification sent to Tara Kapoor (Founder WhatsApp).`,
-      zeroReturnCertificate: {
-        certificateNo: `ZRC-${Date.now().toString().slice(-6)}`,
-        guarantee: 'Zero-Return Guaranteed or 100% Instant Store Credit + Free Alteration Concierge',
-        calibratedShoulder: `${styleDna.shoulder_cm || 38.5} cm`,
-        selectedLength: customTailoring.length || 'Regular',
-        selectedCoverage: customTailoring.coverage || 'Standard Modest',
-      },
-    });
-  } catch (error) {
-    console.error('Payment verification error:', error);
-    res.status(500).json({ error: 'Failed to complete order' });
-  }
-});
-
-// =========================================================================
-// 4. WHATSAPP-FIRST ORDER MANAGEMENT SYSTEM
+// 3. WHATSAPP-FIRST ORDER MANAGEMENT SYSTEM
 // =========================================================================
 
 // Create new customer order & generate prefilled WhatsApp click-to-chat links
@@ -1310,7 +993,7 @@ app.get('/api/admin/orders/export-csv', requireAdmin, (req: AuthRequest, res: Re
     });
 
     res.header('Content-Type', 'text/csv');
-    res.attachment(`aura-orders-ledger-${new Date().toISOString().slice(0, 10)}.csv`);
+    res.attachment(`tarveq-orders-ledger-${new Date().toISOString().slice(0, 10)}.csv`);
     res.send(csv);
   } catch (error) {
     res.status(500).json({ error: 'Failed to export CSV' });
@@ -1318,10 +1001,10 @@ app.get('/api/admin/orders/export-csv', requireAdmin, (req: AuthRequest, res: Re
 });
 
 // =========================================================================
-// 5. SHIPROCKET LOGISTICS & TRACKING WORKFLOW
+// 5. ATELIER LOGISTICS & DISPATCH WORKFLOW
 // =========================================================================
 
-// Admin: Generate Shipment & AWB
+// Admin: Update Shipment & Tracking Code
 app.post('/api/admin/orders/:id/generate-awb', requireAdmin, async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
@@ -1331,35 +1014,29 @@ app.post('/api/admin/orders/:id/generate-awb', requireAdmin, async (req: AuthReq
       return res.status(404).json({ error: 'Order not found' });
     }
 
-    const shipment = await shiprocketService.generateShipment({
-      id: order.id,
-      customer_name: order.customer_name,
-      customer_phone: order.customer_phone,
-      shipping_address: JSON.parse(order.shipping_address || '{}'),
-      items: JSON.parse(order.items || '[]'),
-      total_amount: order.total_amount,
-    });
+    const awbCode = `TRQ-${Math.floor(10000000 + Math.random() * 90000000)}`;
+    const courierPartner = 'Standard Courier Dispatch';
 
     db.prepare(`
       UPDATE orders
-      SET fulfillment_status = 'Shipped via Shiprocket',
+      SET fulfillment_status = 'Shipped',
           awb_tracking_code = ?,
           courier_partner = ?
       WHERE id = ?
-    `).run(shipment.awb_tracking_code, shipment.courier_partner, id);
+    `).run(awbCode, courierPartner, id);
 
     res.json({
       success: true,
-      message: 'Shipment manifest generated & AWB assigned',
-      shipment,
+      message: 'Order status marked as Shipped',
+      shipment: { awb_tracking_code: awbCode, courier_partner: courierPartner },
     });
   } catch (error) {
-    console.error('Shipment generation error:', error);
-    res.status(500).json({ error: 'Failed to generate shipment' });
+    console.error('Shipment update error:', error);
+    res.status(500).json({ error: 'Failed to update shipment' });
   }
 });
 
-// Customer: Live Order Tracking Timeline
+// Customer: Order Tracking Timeline
 app.get('/api/orders/:id/tracking', (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -1369,63 +1046,25 @@ app.get('/api/orders/:id/tracking', (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Order not found' });
     }
 
-    const awb = order.awb_tracking_code || 'DEL-92847192';
-    const timeline = shiprocketService.getTrackingTimeline(awb, order.created_at);
-
     res.json({
       success: true,
       orderId: order.id,
-      awbTrackingCode: order.awb_tracking_code,
-      courierPartner: order.courier_partner || 'Delhivery Express',
+      awbTrackingCode: order.awb_tracking_code || 'Pending Dispatch',
+      courierPartner: order.courier_partner || 'TARVEQ Logistics',
       fulfillmentStatus: order.fulfillment_status,
-      timeline,
+      timeline: [
+        { status: 'Order Placed', timestamp: order.created_at, completed: true },
+        { status: 'Order Confirmed', timestamp: order.created_at, completed: ['Confirmed', 'Processing', 'Shipped', 'Delivered'].includes(order.fulfillment_status) },
+        { status: 'Shipped', timestamp: '', completed: ['Shipped', 'Delivered'].includes(order.fulfillment_status) },
+        { status: 'Delivered', timestamp: '', completed: order.fulfillment_status === 'Delivered' },
+      ],
     });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch tracking' });
   }
 });
 
-// =========================================================================
-// WARDROBE VAULT & CAPSULE ENGINE
-// =========================================================================
-
-app.get('/api/wardrobe-vault', (req: Request, res: Response) => {
-  try {
-    const userId = (req.query.userId as string) || 'user-customer-demo';
-    const vaultItems = db.prepare('SELECT * FROM wardrobe_vault WHERE user_id = ?').all(userId) as any[];
-    const parsed = vaultItems.map((v) => ({ ...v, tags: JSON.parse(v.tags || '[]') }));
-    res.json({ success: true, vault: parsed });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch vault' });
-  }
-});
-
-app.post('/api/wardrobe-vault', (req: Request, res: Response) => {
-  try {
-    const { userId = 'user-customer-demo', itemName, category = 'Tops', colorName = 'Custom Tone', colorHex = '#C5A059', imageUrl, tags = ['Smart Capsule'] } = req.body;
-    const id = `vault-custom-${Date.now()}`;
-
-    db.prepare(`
-      INSERT INTO wardrobe_vault (id, user_id, item_name, category, color_name, color_hex, image_url, tags)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(id, userId, itemName, category, colorName, colorHex, imageUrl || 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=700&q=80', JSON.stringify(tags));
-
-    res.json({ success: true, id, message: 'Item pinned to Wardrobe Vault' });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to pin item' });
-  }
-});
-
-app.delete('/api/wardrobe-vault/:id', (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    db.prepare('DELETE FROM wardrobe_vault WHERE id = ?').run(id);
-    res.json({ success: true, message: 'Item removed from wardrobe vault' });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to delete vault item' });
-  }
-});
-
+// Waitlist & Early Access Subscription
 app.post('/api/waitlist/subscribe', (req: Request, res: Response) => {
   try {
     const { contact, type = 'email' } = req.body;
@@ -1440,28 +1079,102 @@ app.post('/api/waitlist/subscribe', (req: Request, res: Response) => {
   }
 });
 
-app.post('/api/capsule/evaluate', (req: Request, res: Response) => {
-  try {
-    const { vaultItemId, productIds = [] } = req.body;
-    const vaultItem = db.prepare('SELECT * FROM wardrobe_vault WHERE id = ?').get(vaultItemId) as any;
-    const products = productIds.map((pid: string) => db.prepare('SELECT * FROM products WHERE id = ?').get(pid)).filter(Boolean) as any[];
+// =========================================================================
+// 6. WARDROBE VAULT & SIGLIP VISUAL EMBEDDINGS
+// =========================================================================
 
-    const subtotal = products.reduce((sum, p) => sum + p.price, 0);
-    const bundleDiscount = Math.round(subtotal * 0.15);
-    const finalPrice = subtotal - bundleDiscount;
+// Get user's saved wardrobe vault items
+app.get('/api/wardrobe-vault', (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    let userId = (req.query.userId as string) || 'user-customer-demo';
+
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET) as any;
+        if (decoded?.id) userId = decoded.id;
+      } catch {}
+    }
+
+    const items = db.prepare('SELECT * FROM wardrobe_vault WHERE user_id = ? ORDER BY created_at DESC').all(userId) as any[];
+    const parsed = items.map((it) => ({
+      ...it,
+      tags: JSON.parse(it.tags || '[]'),
+    }));
+
+    res.json({ success: true, vault: parsed });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch wardrobe vault' });
+  }
+});
+
+// Pin item with transparent cutout to Wardrobe Vault
+app.post('/api/wardrobe-vault', (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    let userId = req.body.userId || 'user-customer-demo';
+
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET) as any;
+        if (decoded?.id) userId = decoded.id;
+      } catch {}
+    }
+
+    const {
+      itemName = 'Owned Apparel Item',
+      category = 'Tops',
+      colorName = 'Warm Beige',
+      colorHex = '#C5A059',
+      imageUrl = 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=700&q=80',
+      tags = ['Capsule Essential'],
+    } = req.body;
+
+    const id = `vault-${Date.now()}`;
+    db.prepare(`
+      INSERT INTO wardrobe_vault (id, user_id, item_name, category, color_name, color_hex, image_url, tags)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(id, userId, itemName, category, colorName, colorHex, imageUrl, JSON.stringify(tags));
+
+    res.json({ success: true, id, message: 'Item saved to Wardrobe Vault' });
+  } catch (error) {
+    console.error('Error pinning to vault:', error);
+    res.status(500).json({ error: 'Failed to save to wardrobe vault' });
+  }
+});
+
+// Delete item from Wardrobe Vault
+app.delete('/api/wardrobe-vault/:id', (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    db.prepare('DELETE FROM wardrobe_vault WHERE id = ?').run(id);
+    res.json({ success: true, message: 'Item deleted from vault' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete vault item' });
+  }
+});
+
+// Compute SigLIP/CLIP Visual Embedding matches against live catalog
+app.post('/api/wardrobe-vault/match', async (req: Request, res: Response) => {
+  try {
+    const { vaultItem } = req.body;
+    if (!vaultItem) {
+      return res.status(400).json({ error: 'Vault item details required' });
+    }
+
+    const catalogProducts = db.prepare('SELECT * FROM products').all() as any[];
+    const matches = await computeWardrobeMatches(vaultItem, catalogProducts);
 
     res.json({
       success: true,
-      synergyScore: products.length >= 2 ? 98.6 : 96.2,
-      bundleDiscountPct: 15,
-      subtotal,
-      bundleDiscount,
-      finalPrice,
-      vaultItem,
-      products,
+      matches,
+      modelUsed: process.env.HUGGINGFACE_API_KEY ? 'google/siglip-base-patch16-224 (Hugging Face)' : 'Local Harmonic Pairing Rule Engine',
     });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to evaluate capsule' });
+  } catch (error: any) {
+    console.error('Visual matching error:', error);
+    res.status(500).json({ error: error.message || 'Failed to match wardrobe item' });
   }
 });
 
@@ -1472,10 +1185,10 @@ app.get('*', (req: Request, res: Response, next) => {
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
   } else {
-    res.send('AURA Atelier Backend Active');
+    res.send('TARVEQ Atelier Backend Active');
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`[AURA Production Server] Running smoothly on port ${PORT}`);
+  console.log(`[TARVEQ Production Server] Running smoothly on port ${PORT}`);
 });

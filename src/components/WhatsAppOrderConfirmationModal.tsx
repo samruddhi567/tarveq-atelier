@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle2, MessageCircle, ArrowRight, ShieldCheck, Copy, Check, ExternalLink, Package } from 'lucide-react';
+import { CheckCircle2, MessageCircle, ArrowRight, ShieldCheck, Copy, Check, ExternalLink, Package, Star } from 'lucide-react';
 
 interface WhatsAppOrderConfirmationModalProps {
   isOpen: boolean;
@@ -25,6 +25,9 @@ export const WhatsAppOrderConfirmationModal: React.FC<WhatsAppOrderConfirmationM
   const [admin1Sent, setAdmin1Sent] = useState(false);
   const [admin2Sent, setAdmin2Sent] = useState(false);
   const [copiedMessage, setCopiedMessage] = useState(false);
+  const [rating, setRating] = useState<number>(0);
+  const [feedbackNote, setFeedbackNote] = useState('');
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
 
   if (!isOpen || !order || !whatsAppUrls) return null;
 
@@ -166,6 +169,62 @@ export const WhatsAppOrderConfirmationModal: React.FC<WhatsAppOrderConfirmationM
                 <strong className="text-charcoal">Order Status:</strong> {order.fulfillment_status}
               </p>
             </div>
+          </div>
+
+          {/* MVP Customer Feedback Collection */}
+          <div className="bg-white p-4 rounded-2xl border border-beige-border space-y-3 text-xs shadow-sm">
+            <div className="flex items-center justify-between pb-2 border-b border-beige-border">
+              <span className="font-semibold text-charcoal">How was your ordering experience?</span>
+              <span className="text-[10px] text-charcoal-muted">Early Customer Feedback</span>
+            </div>
+            {feedbackSubmitted ? (
+              <div className="p-3 bg-[#E8EFE9] text-[#2D5A27] rounded-xl flex items-center space-x-2 text-xs">
+                <CheckCircle2 className="w-4 h-4 text-[#2D5A27]" />
+                <span>Thank you! Your feedback helps us shape TARVEQ ATELIER.</span>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                <div className="flex items-center space-x-2">
+                  <span className="text-charcoal-muted">Rate:</span>
+                  <div className="flex space-x-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setRating(star)}
+                        className="p-1 hover:scale-110 transition"
+                      >
+                        <Star
+                          className={`w-4 h-4 ${
+                            star <= rating ? 'fill-gold text-gold' : 'text-charcoal/20'
+                          }`}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    value={feedbackNote}
+                    onChange={(e) => setFeedbackNote(e.target.value)}
+                    placeholder="Any suggestions or questions for the founders?"
+                    className="flex-1 px-3 py-1.5 bg-[#FAF7F2] border border-beige-border rounded-xl text-xs focus:outline-none focus:border-gold"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (rating > 0 || feedbackNote.trim()) {
+                        setFeedbackSubmitted(true);
+                      }
+                    }}
+                    className="px-3 py-1.5 bg-charcoal text-white rounded-xl hover:bg-black transition text-xs font-medium"
+                  >
+                    Submit
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
         </div>

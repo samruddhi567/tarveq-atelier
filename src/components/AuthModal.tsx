@@ -9,14 +9,12 @@ interface AuthModalProps {
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess }) => {
-  const [tab, setTab] = useState<'login' | 'register' | 'otp' | '2fa'>('login');
+  const [tab, setTab] = useState<'login' | 'register' | 'otp'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
-  const [twoFactorCode, setTwoFactorCode] = useState('');
-  const [twoFactorTempToken, setTwoFactorTempToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,7 +33,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Demo login failed');
 
-      localStorage.setItem('aura_token', data.token);
+      localStorage.setItem('tarveq_token', data.token);
       onLoginSuccess(data.user, data.token);
       onClose();
     } catch (err: any) {
@@ -59,43 +57,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Login failed');
 
-      // Check if account has Google Authenticator 2FA enabled
-      if (data.requires2FA) {
-        setTwoFactorTempToken(data.tempToken);
-        setTab('2fa');
-        return;
-      }
-
-      localStorage.setItem('aura_token', data.token);
-      onLoginSuccess(data.user, data.token);
-      onClose();
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Google Authenticator 2FA Verification
-  const handleVerify2FALogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!twoFactorCode || twoFactorCode.length !== 6) {
-      setError('Please enter the 6-digit code from Google Authenticator');
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch('/api/auth/login/2fa', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tempToken: twoFactorTempToken, code: twoFactorCode }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || '2FA Verification failed');
-
-      localStorage.setItem('aura_token', data.token);
+      localStorage.setItem('tarveq_token', data.token);
       onLoginSuccess(data.user, data.token);
       onClose();
     } catch (err: any) {
@@ -119,7 +81,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Registration failed');
 
-      localStorage.setItem('aura_token', data.token);
+      localStorage.setItem('tarveq_token', data.token);
       onLoginSuccess(data.user, data.token);
       onClose();
     } catch (err: any) {
@@ -184,7 +146,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
                 <span className="text-xs font-bold text-espresso group-hover:text-terracotta">Customer Demo</span>
                 <span className="text-[9px] bg-sand px-1.5 py-0.5 rounded text-espresso-soft">Client</span>
               </div>
-              <p className="text-[10px] text-espresso-soft mt-0.5">Ananya Sharma (Calibrated)</p>
+              <p className="text-[10px] text-espresso-soft mt-0.5">Ananya Sharma (Demo User)</p>
             </button>
 
             <button
@@ -196,40 +158,38 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
                 <span className="text-xs font-bold text-white group-hover:text-gold-light">Founder Admin</span>
                 <span className="text-[9px] bg-terracotta text-white px-1.5 py-0.5 rounded font-bold">Admin</span>
               </div>
-              <p className="text-[10px] text-sand-light/80 mt-0.5">Tara Kapoor (Ledger & Stock)</p>
+              <p className="text-[10px] text-sand-light/80 mt-0.5">Samruddhi & Vikash (Co-Founders)</p>
             </button>
           </div>
         </div>
 
         {/* Tabs: Login / Register / OTP */}
-        {tab !== '2fa' && (
-          <div className="px-5 pt-3 flex border-b border-sand-border text-xs font-medium">
-            <button
-              onClick={() => { setTab('login'); setError(null); }}
-              className={`flex-1 pb-2.5 text-center transition border-b-2 ${
-                tab === 'login' ? 'border-terracotta text-terracotta font-bold' : 'border-transparent text-espresso-soft'
-              }`}
-            >
-              Email Login
-            </button>
-            <button
-              onClick={() => { setTab('otp'); setError(null); }}
-              className={`flex-1 pb-2.5 text-center transition border-b-2 ${
-                tab === 'otp' ? 'border-terracotta text-terracotta font-bold' : 'border-transparent text-espresso-soft'
-              }`}
-            >
-              Mobile OTP
-            </button>
-            <button
-              onClick={() => { setTab('register'); setError(null); }}
-              className={`flex-1 pb-2.5 text-center transition border-b-2 ${
-                tab === 'register' ? 'border-terracotta text-terracotta font-bold' : 'border-transparent text-espresso-soft'
-              }`}
-            >
-              Create Account
-            </button>
-          </div>
-        )}
+        <div className="px-5 pt-3 flex border-b border-sand-border text-xs font-medium">
+          <button
+            onClick={() => { setTab('login'); setError(null); }}
+            className={`flex-1 pb-2.5 text-center transition border-b-2 ${
+              tab === 'login' ? 'border-terracotta text-terracotta font-bold' : 'border-transparent text-espresso-soft'
+            }`}
+          >
+            Email Login
+          </button>
+          <button
+            onClick={() => { setTab('otp'); setError(null); }}
+            className={`flex-1 pb-2.5 text-center transition border-b-2 ${
+              tab === 'otp' ? 'border-terracotta text-terracotta font-bold' : 'border-transparent text-espresso-soft'
+            }`}
+          >
+            Mobile OTP
+          </button>
+          <button
+            onClick={() => { setTab('register'); setError(null); }}
+            className={`flex-1 pb-2.5 text-center transition border-b-2 ${
+              tab === 'register' ? 'border-terracotta text-terracotta font-bold' : 'border-transparent text-espresso-soft'
+            }`}
+          >
+            Create Account
+          </button>
+        </div>
 
         {/* Form Body */}
         <div className="p-5">
@@ -237,52 +197,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
             <div className="mb-4 p-2.5 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl">
               {error}
             </div>
-          )}
-
-          {tab === '2fa' && (
-            <form onSubmit={handleVerify2FALogin} className="space-y-4">
-              <div className="text-center space-y-2 py-2">
-                <div className="w-12 h-12 bg-burgundy-light rounded-full mx-auto flex items-center justify-center text-burgundy border border-burgundy/20">
-                  <Shield className="w-6 h-6" />
-                </div>
-                <h4 className="font-serif text-xl font-bold text-espresso">
-                  Google Authenticator 2FA
-                </h4>
-                <p className="text-xs text-espresso-soft max-w-xs mx-auto">
-                  Open your <strong>Google Authenticator</strong> app and enter the 6-digit verification code:
-                </p>
-              </div>
-
-              <div>
-                <input
-                  type="text"
-                  maxLength={6}
-                  value={twoFactorCode}
-                  onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ''))}
-                  placeholder="000000"
-                  required
-                  autoFocus
-                  className="w-full text-center font-mono text-2xl tracking-[0.35em] font-bold py-3 px-4 bg-white border border-sand-border focus:border-terracotta rounded-xl focus:outline-none text-espresso"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading || twoFactorCode.length !== 6}
-                className="w-full bg-burgundy text-white font-semibold text-xs py-3 rounded-xl hover:bg-burgundy-hover transition flex items-center justify-center space-x-1.5 shadow-sm disabled:opacity-50"
-              >
-                <span>{loading ? 'Verifying...' : 'Verify & Continue'}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => { setTab('login'); setError(null); setTwoFactorCode(''); }}
-                className="w-full text-center text-xs text-espresso-soft hover:text-espresso transition underline pt-1"
-              >
-                ← Back to Login
-              </button>
-            </form>
           )}
 
           {tab === 'login' && (
@@ -297,7 +211,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="customer@auramodest.com"
+                    placeholder="you@example.com"
                     required
                     className="w-full pl-9 pr-3 py-2.5 text-xs bg-white border border-sand-border rounded-xl focus:outline-none focus:border-terracotta text-espresso"
                   />

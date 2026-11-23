@@ -101,7 +101,7 @@ export interface Order {
   payment_id?: string;
   payment_method?: string;
   payment_status: 'Paid' | 'Pending' | 'Pending Verification' | 'Failed';
-  fulfillment_status: 'New Order' | 'Pending Confirmation' | 'Confirmed' | 'Processing' | 'Shipped via Shiprocket' | 'Delivered' | 'Cancelled';
+  fulfillment_status: 'New Order' | 'Pending Confirmation' | 'Confirmed' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
   awb_tracking_code?: string;
   courier_partner?: string;
   fit_gate_verified?: number;

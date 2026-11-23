@@ -1,40 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { Header, ActiveNavTab } from './components/Header';
 import { HeroBanner } from './components/HeroBanner';
-import { StyleDiscoverySection } from './components/StyleDiscoverySection';
 import { ProductCatalogueView } from './components/ProductCatalogueView';
-import { StyleStudioView } from './components/StyleStudioView';
-import { DigitalWardrobeView } from './components/DigitalWardrobeView';
-import { UpcomingCollectionSection } from './components/UpcomingCollectionSection';
-import { OutfitsInMotion } from './components/OutfitsInMotion';
 import { Footer } from './components/Footer';
 import { ProductCard } from './components/ProductCard';
 
 // Modals & Drawers
 import { ProductDetailModal } from './components/ProductDetailModal';
-import { FitFinderModal } from './components/FitFinderModal';
-import { ColourStudioModal } from './components/ColourStudioModal';
 import { CartDrawer, CartItem } from './components/CartDrawer';
 import { WishlistDrawer } from './components/WishlistDrawer';
 import { SearchModal } from './components/SearchModal';
 import { UserProfileModal } from './components/UserProfileModal';
 import { AuthModal } from './components/AuthModal';
-import { RazorpayModal } from './components/RazorpayModal';
-import { OrderSuccessModal } from './components/OrderSuccessModal';
-import { OrderTrackingModal } from './components/OrderTrackingModal';
-import { InvestorDrawer } from './components/InvestorDrawer';
 import { AdminDashboard } from './components/AdminDashboard';
 import { CheckoutPage } from './components/CheckoutPage';
 import { WhatsAppOrderConfirmationModal } from './components/WhatsAppOrderConfirmationModal';
 
-import { Product, User, WardrobeVaultItem, Order } from './types';
-import { Package, Truck, Bell, Sparkles, MessageCircle } from 'lucide-react';
+// AI Suite: Edge Vision, Wardrobe Vault, Stylist Chat & Roadmap
+import { EdgeStyleDnaScannerModal } from './components/EdgeStyleDnaScannerModal';
+import { WardrobeVaultDrawer } from './components/WardrobeVaultDrawer';
+import { StylistChatDrawer } from './components/StylistChatDrawer';
+import { AiRoadmapView } from './components/AiRoadmapView';
+
+import { Product, User, Order } from './types';
+import { Package, Truck, MessageCircle } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem('aura_token'));
+  const [token, setToken] = useState<string | null>(localStorage.getItem('tarveq_token'));
   const [products, setProducts] = useState<Product[]>([]);
-  const [vaultItems, setVaultItems] = useState<WardrobeVaultItem[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [activeTab, setActiveTab] = useState<ActiveNavTab>('home');
   const [isAdminView, setIsAdminView] = useState<boolean>(false);
@@ -63,14 +57,11 @@ export const App: React.FC = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
-  const [isFitFinderOpen, setIsFitFinderOpen] = useState(false);
-  const [isColourStudioOpen, setIsColourStudioOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [isRazorpayOpen, setIsRazorpayOpen] = useState(false);
-  const [isSuccessOpen, setIsSuccessOpen] = useState(false);
-  const [selectedOrderForTracking, setSelectedOrderForTracking] = useState<Order | null>(null);
-  const [isInvestorDrawerOpen, setIsInvestorDrawerOpen] = useState(false);
+  const [isStyleDnaOpen, setIsStyleDnaOpen] = useState(false);
+  const [isWardrobeVaultOpen, setIsWardrobeVaultOpen] = useState(false);
+  const [isStylistChatOpen, setIsStylistChatOpen] = useState(false);
 
   // WhatsApp-First Order & Checkout States
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -79,16 +70,11 @@ export const App: React.FC = () => {
   const [confirmedWhatsAppUrls, setConfirmedWhatsAppUrls] = useState<any>(null);
   const [isWhatsAppConfirmationOpen, setIsWhatsAppConfirmationOpen] = useState(false);
 
-  // Active Payment & Order States
-  const [activeRazorpayOrder, setActiveRazorpayOrder] = useState<any>(null);
-  const [pendingCheckoutPayload, setPendingCheckoutPayload] = useState<any>(null);
-  const [latestOrder, setLatestOrder] = useState<any>(null);
   const [toastNotification, setToastNotification] = useState<string | null>(null);
-  const [founderAlert, setFounderAlert] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
     setToastNotification(msg);
-    setTimeout(() => setToastNotification(null), 4000);
+    setTimeout(() => setToastNotification(null), 3000);
   };
 
   // Persist Cart & Wishlist
@@ -102,7 +88,7 @@ export const App: React.FC = () => {
 
   // Fetch authenticated user profile
   const fetchAuthProfile = async () => {
-    const currentToken = localStorage.getItem('aura_token');
+    const currentToken = localStorage.getItem('tarveq_token');
     try {
       const res = await fetch('/api/auth/me', {
         headers: currentToken ? { Authorization: `Bearer ${currentToken}` } : {},
@@ -111,7 +97,7 @@ export const App: React.FC = () => {
       if (data.success && data.user) {
         setCurrentUser(data.user);
         if (data.token && !currentToken) {
-          localStorage.setItem('aura_token', data.token);
+          localStorage.setItem('tarveq_token', data.token);
           setToken(data.token);
         }
       }
@@ -120,18 +106,16 @@ export const App: React.FC = () => {
     }
   };
 
-  // Fetch catalog, vault, and orders
+  // Fetch catalog and orders
   const fetchStoreData = async () => {
     try {
       const userId = currentUser?.id || 'user-customer-demo';
-      const [prodRes, vaultRes, ordersRes] = await Promise.all([
+      const [prodRes, ordersRes] = await Promise.all([
         fetch(`/api/products?userId=${userId}`).then((r) => r.json()),
-        fetch(`/api/wardrobe-vault?userId=${userId}`).then((r) => r.json()),
         fetch(`/api/orders?userId=${userId}`).then((r) => r.json()),
       ]);
 
       if (prodRes.success) setProducts(prodRes.products || []);
-      if (vaultRes.success) setVaultItems(vaultRes.vault || []);
       if (ordersRes.success) setOrders(ordersRes.orders || []);
     } catch (err) {
       console.error('Failed to load store data:', err);
@@ -146,23 +130,18 @@ export const App: React.FC = () => {
     fetchStoreData();
   }, [currentUser]);
 
-  // Derived user recommended size
-  const userFitSize = currentUser?.style_dna?.is_scanned === 1
-    ? (currentUser.style_dna.build_proportion === 'Petite' ? 'S' : 'M')
-    : null;
-
   // Cart Handlers
-  const handleAddToCart = (product: Product, size: string = 'M', length: string = 'Regular', coverage: string = 'Standard') => {
+  const handleAddToCart = (product: Product, size: string = 'M') => {
     setCartItems((prev) => {
       const existingIdx = prev.findIndex(
-        (it) => it.product.id === product.id && it.size === size && it.length === length
+        (it) => it.product.id === product.id && it.size === size
       );
       if (existingIdx > -1) {
         const next = [...prev];
         next[existingIdx].quantity += 1;
         return next;
       }
-      return [...prev, { product, size, length, coverage, quantity: 1 }];
+      return [...prev, { product, size, length: 'Regular', coverage: 'Standard', quantity: 1 }];
     });
     showToast(`Added ${product.name} (${size}) to your Bag.`);
   };
@@ -194,128 +173,6 @@ export const App: React.FC = () => {
 
   const wishlistProducts = products.filter((p) => wishlistIds.includes(p.id));
 
-  // Save Fit Profile to SQLite Backend
-  const handleSaveFitProfile = async (fitData: any) => {
-    try {
-      const userId = currentUser?.id || 'user-customer-demo';
-      const res = await fetch('/api/style-dna', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          height: fitData.height,
-          buildProportion: fitData.build_proportion,
-          modestyPreference: fitData.modesty_preference,
-          skinUndertone: fitData.undertone,
-          shoulderCm: fitData.bust_cm ? fitData.bust_cm * 0.42 : 39,
-          bustCm: fitData.bust_cm,
-          waistCm: fitData.waist_cm,
-          hipCm: fitData.hip_cm,
-        }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setCurrentUser((prev) => (prev ? { ...prev, style_dna: data.user.style_dna } : data.user));
-        fetchStoreData();
-        showToast(`Fit Finder profile saved! Recommended size: ${fitData.recommended_size}.`);
-      }
-    } catch (err) {
-      console.error('Failed to save fit profile:', err);
-    }
-  };
-
-  // Save Colour Palette
-  const handleSavePalette = async (undertone: string, paletteName: string) => {
-    try {
-      const userId = currentUser?.id || 'user-customer-demo';
-      await fetch('/api/style-dna', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          height: currentUser?.style_dna?.height || 165,
-          buildProportion: currentUser?.style_dna?.build_proportion || 'Regular',
-          modestyPreference: currentUser?.style_dna?.modesty_preference || 'Balanced Modest',
-          skinUndertone: undertone,
-        }),
-      });
-      showToast(`Palette saved! Harmonized with ${paletteName}.`);
-      fetchStoreData();
-      fetchAuthProfile();
-    } catch (err) {
-      console.error('Failed to save palette:', err);
-    }
-  };
-
-  // Add & Delete Wardrobe Vault Items
-  const handleAddNewVaultItem = async (item: Partial<WardrobeVaultItem>) => {
-    try {
-      const res = await fetch('/api/wardrobe-vault', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: currentUser?.id || 'user-customer-demo',
-          itemName: item.item_name,
-          category: item.category,
-          colorName: item.color_name,
-          colorHex: item.color_hex,
-          imageUrl: item.image_url,
-          tags: item.tags,
-        }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        fetchStoreData();
-        showToast('Piece added to your TARVEQ Wardrobe!');
-      }
-    } catch (err) {
-      console.error('Failed to add vault piece:', err);
-    }
-  };
-
-  const handleDeleteVaultItem = async (id: string) => {
-    try {
-      const res = await fetch(`/api/wardrobe-vault/${id}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (data.success) {
-        setVaultItems((prev) => prev.filter((it) => it.id !== id));
-        showToast('Piece removed from wardrobe.');
-      }
-    } catch (err) {
-      console.error('Failed to delete vault item:', err);
-    }
-  };
-
-  // Checkout Flow
-  const initiateCheckout = async (items: any[], customTailoring: any = {}) => {
-    try {
-      const res = await fetch('/api/payments/create-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: currentUser?.id || 'user-customer-demo',
-          items,
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        if (data.error === 'OUT_OF_STOCK') {
-          showToast(`⚠️ ${data.message}`);
-          return;
-        }
-        throw new Error(data.error || 'Failed to initiate payment');
-      }
-
-      setPendingCheckoutPayload({ items, customTailoring });
-      setActiveRazorpayOrder(data.order);
-      setIsRazorpayOpen(true);
-      setIsCartOpen(false);
-    } catch (err: any) {
-      alert(err.message);
-    }
-  };
-
   const handleProceedCartCheckout = () => {
     if (cartItems.length === 0) return;
     setCheckoutItems(cartItems);
@@ -323,29 +180,17 @@ export const App: React.FC = () => {
     setIsCheckoutOpen(true);
   };
 
-  const handleDirectBuy = (product: Product, tailoring: { size: string; length: string; coverage: string }) => {
+  const handleDirectBuy = (product: Product, tailoring: { size: string }) => {
     setSelectedProduct(null);
     setCheckoutItems([
       {
         product,
         size: tailoring.size || 'M',
-        length: tailoring.length || 'Regular',
-        coverage: tailoring.coverage || 'Standard',
+        length: 'Regular',
+        coverage: 'Standard',
         quantity: 1,
       },
     ]);
-    setIsCheckoutOpen(true);
-  };
-
-  const handleOrderCapsule = (capsuleProducts: Product[]) => {
-    const formatted: CartItem[] = capsuleProducts.map((p) => ({
-      product: p,
-      size: userFitSize || 'M',
-      length: 'Regular',
-      coverage: 'Capsule Bundle',
-      quantity: 1,
-    }));
-    setCheckoutItems(formatted);
     setIsCheckoutOpen(true);
   };
 
@@ -356,53 +201,14 @@ export const App: React.FC = () => {
     setConfirmedWhatsAppUrls(whatsAppUrls);
     setIsWhatsAppConfirmationOpen(true);
     fetchStoreData();
-    showToast(`Order ${orderData.id} created! Please send to both WhatsApp admins.`);
-  };
-
-  const handlePaymentSuccess = async (paymentId: string, paymentMethod: string) => {
-    setIsRazorpayOpen(false);
-    if (!pendingCheckoutPayload) return;
-
-    try {
-      const res = await fetch('/api/payments/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          razorpay_order_id: activeRazorpayOrder.id,
-          razorpay_payment_id: paymentId,
-          paymentMethod,
-          userId: currentUser?.id || 'user-customer-demo',
-          items: pendingCheckoutPayload.items,
-          customTailoring: pendingCheckoutPayload.customTailoring,
-          shippingAddress: currentUser?.shipping_address || {
-            street: 'Indiranagar 100ft Road',
-            city: 'Bengaluru',
-            state: 'Karnataka',
-            pincode: '560038',
-          },
-        }),
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        setLatestOrder(data);
-        setIsSuccessOpen(true);
-        setCartItems([]); // Clear cart upon successful order
-        if (data.founderAlertMessage) {
-          setFounderAlert(data.founderAlertMessage);
-          setTimeout(() => setFounderAlert(null), 8000);
-        }
-        fetchStoreData();
-      }
-    } catch (err) {
-      console.error('Payment verification failed:', err);
-    }
+    showToast(`Order ${orderData.id} created! Please send to WhatsApp admin.`);
   };
 
   // Auth Handlers
   const handleLoginSuccess = (user: User, userToken: string) => {
     setCurrentUser(user);
     setToken(userToken);
+    localStorage.setItem('tarveq_token', userToken);
     showToast(`Welcome back, ${user.name}!`);
     if (user.role === 'admin') {
       setIsAdminView(true);
@@ -410,7 +216,7 @@ export const App: React.FC = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('aura_token');
+    localStorage.removeItem('tarveq_token');
     setToken(null);
     setCurrentUser(null);
     setIsAdminView(false);
@@ -418,7 +224,7 @@ export const App: React.FC = () => {
     showToast('Signed out of TARVEQ Atelier.');
   };
 
-  // If Founder Admin Dashboard is active
+  // Admin Dashboard
   if (isAdminView) {
     return (
       <AdminDashboard
@@ -434,21 +240,7 @@ export const App: React.FC = () => {
       {/* Toast Notification */}
       {toastNotification && (
         <div className="fixed bottom-6 right-6 z-[70] bg-charcoal text-[#F8F4EC] text-xs font-sans font-medium px-4 py-3 rounded-2xl shadow-elevated-luxe flex items-center space-x-2 border border-gold/30 animate-in slide-in-from-bottom-2 duration-300">
-          <Sparkles className="w-4 h-4 text-gold" />
           <span>{toastNotification}</span>
-        </div>
-      )}
-
-      {/* Founder Admin Alert Banner (Live Simulation) */}
-      {founderAlert && (
-        <div className="fixed top-24 right-4 z-50 bg-burgundy text-white p-4 rounded-2xl shadow-2xl max-w-sm border border-gold/40 animate-in slide-in-from-top-4 duration-300">
-          <div className="flex items-start space-x-2.5">
-            <Bell className="w-4 h-4 text-gold shrink-0 mt-0.5" />
-            <div className="space-y-1 text-xs font-sans">
-              <span className="font-bold text-gold uppercase tracking-wider text-[10px]">Atelier Dispatch Alert</span>
-              <p className="leading-snug">{founderAlert}</p>
-            </div>
-          </div>
         </div>
       )}
 
@@ -461,8 +253,10 @@ export const App: React.FC = () => {
         onOpenWishlist={() => setIsWishlistOpen(true)}
         onOpenCart={() => setIsCartOpen(true)}
         onOpenAuth={() => (currentUser ? setIsProfileOpen(true) : setIsAuthOpen(true))}
-        onOpenFitFinder={() => setIsFitFinderOpen(true)}
         onOpenAdmin={() => setIsAdminView(true)}
+        onOpenStyleDna={() => setIsStyleDnaOpen(true)}
+        onOpenWardrobeVault={() => setIsWardrobeVaultOpen(true)}
+        onOpenStylistChat={() => setIsStylistChatOpen(true)}
         cartCount={cartItems.reduce((sum, it) => sum + it.quantity, 0)}
         wishlistCount={wishlistIds.length}
       />
@@ -473,79 +267,47 @@ export const App: React.FC = () => {
         {/* VIEW 1: Home Page */}
         {activeTab === 'home' && (
           <main className="space-y-0">
-            {/* Hero Banner — editorial full-bleed style */}
+            {/* Hero Banner */}
             <HeroBanner
               onExploreCollection={() => setActiveTab('shop-all')}
-              onDiscoverStyle={() => setIsFitFinderOpen(true)}
-              isScanned={currentUser?.style_dna?.is_scanned === 1}
-              userUndertone={currentUser?.style_dna?.undertone}
+              onDiscoverStyle={() => setActiveTab('shop-all')}
+              isScanned={false}
+              userUndertone={undefined}
             />
 
-            {/* ── Ornamental Divider ── */}
+            {/* Ornamental Divider */}
             <div className="flex items-center justify-center py-6 px-4 bg-[#F8F4EC]">
               <div className="flex items-center gap-2 sm:gap-3 w-full max-w-2xl">
                 <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gold/40 to-gold/60" />
-                <svg width="120" height="20" viewBox="0 0 120 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0 opacity-70">
-                  <circle cx="60" cy="10" r="3" fill="#B58C50"/>
-                  <rect x="52" y="9" width="6" height="2" rx="1" fill="#B58C50"/>
-                  <rect x="62" y="9" width="6" height="2" rx="1" fill="#B58C50"/>
-                  <circle cx="45" cy="10" r="2" fill="#B58C50" opacity="0.5"/>
-                  <circle cx="75" cy="10" r="2" fill="#B58C50" opacity="0.5"/>
-                  <circle cx="34" cy="10" r="1.5" fill="#B58C50" opacity="0.3"/>
-                  <circle cx="86" cy="10" r="1.5" fill="#B58C50" opacity="0.3"/>
-                  <circle cx="25" cy="10" r="1" fill="#B58C50" opacity="0.2"/>
-                  <circle cx="95" cy="10" r="1" fill="#B58C50" opacity="0.2"/>
-                </svg>
+                <div className="w-2 h-2 rounded-full bg-gold" />
                 <div className="flex-1 h-px bg-gradient-to-l from-transparent via-gold/40 to-gold/60" />
               </div>
             </div>
 
-            {/* ── Shop by Category — circular chips ── */}
+            {/* Shop by Category */}
             <section className="bg-[#F8F4EC] pb-14 pt-2 px-4 sm:px-6 lg:px-8">
               <div className="max-w-6xl mx-auto space-y-8">
-                {/* Section header */}
                 <div className="text-center space-y-1">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-gold font-sans font-semibold">Our Blooms</p>
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-gold font-sans font-semibold">Collections</p>
                   <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-medium text-charcoal">
                     Shop by Category
                   </h2>
                 </div>
 
-                {/* Circular category chips */}
                 <div className="flex items-start justify-center gap-5 sm:gap-8 lg:gap-10 overflow-x-auto pb-2 scrollbar-hide">
                   {[
-                    {
-                      label: 'Co-ord Sets',
-                      img: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=400&q=80',
-                      tab: 'shop-all',
-                    },
-                    {
-                      label: 'Tunics',
-                      img: 'https://images.unsplash.com/photo-1551803091-e20673f15770?auto=format&fit=crop&w=400&q=80',
-                      tab: 'shop-all',
-                    },
-                    {
-                      label: 'Shirts',
-                      img: 'https://images.unsplash.com/photo-1598032895397-b9472444bf93?auto=format&fit=crop&w=400&q=80',
-                      tab: 'shop-all',
-                    },
-                    {
-                      label: 'Trousers',
-                      img: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=400&q=80',
-                      tab: 'shop-all',
-                    },
-                    {
-                      label: 'New Arrivals',
-                      img: 'https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=400&q=80',
-                      tab: 'new-arrivals',
-                    },
+                    { label: 'Co-ord Sets', img: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=400&q=80', tab: 'shop-all' },
+                    { label: 'Tunics', img: 'https://images.unsplash.com/photo-1551803091-e20673f15770?auto=format&fit=crop&w=400&q=80', tab: 'shop-all' },
+                    { label: 'Shirts', img: 'https://images.unsplash.com/photo-1598032895397-b9472444bf93?auto=format&fit=crop&w=400&q=80', tab: 'shop-all' },
+                    { label: 'Trousers', img: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=400&q=80', tab: 'shop-all' },
+                    { label: 'New Arrivals', img: 'https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=400&q=80', tab: 'new-arrivals' },
                   ].map((cat) => (
                     <button
                       key={cat.label}
                       onClick={() => setActiveTab(cat.tab as any)}
                       className="flex flex-col items-center gap-3 group flex-shrink-0"
                     >
-                      <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 rounded-full overflow-hidden border-2 border-gold/30 group-hover:border-burgundy shadow-md group-hover:shadow-lg transition-all duration-300 ring-4 ring-transparent group-hover:ring-burgundy/10">
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 rounded-full overflow-hidden border-2 border-gold/30 group-hover:border-burgundy shadow-md transition-all duration-300">
                         <img
                           src={cat.img}
                           alt={cat.label}
@@ -560,29 +322,6 @@ export const App: React.FC = () => {
                 </div>
               </div>
             </section>
-
-            {/* ── Second ornamental divider ── */}
-            <div className="flex items-center justify-center py-4 px-4 bg-[#F8F4EC]">
-              <div className="flex items-center gap-2 sm:gap-3 w-full max-w-2xl">
-                <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gold/30 to-gold/50" />
-                <svg width="80" height="16" viewBox="0 0 80 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0 opacity-60">
-                  <circle cx="40" cy="8" r="2.5" fill="#B58C50"/>
-                  <circle cx="30" cy="8" r="1.5" fill="#B58C50" opacity="0.5"/>
-                  <circle cx="50" cy="8" r="1.5" fill="#B58C50" opacity="0.5"/>
-                  <circle cx="21" cy="8" r="1" fill="#B58C50" opacity="0.3"/>
-                  <circle cx="59" cy="8" r="1" fill="#B58C50" opacity="0.3"/>
-                </svg>
-                <div className="flex-1 h-px bg-gradient-to-l from-transparent via-gold/30 to-gold/50" />
-              </div>
-            </div>
-
-            {/* Personalized Style Discovery Section (4 Cards) */}
-            <StyleDiscoverySection
-              onOpenFitFinder={() => setIsFitFinderOpen(true)}
-              onOpenColourStudio={() => setIsColourStudioOpen(true)}
-              onOpenStyleStudio={() => setActiveTab('style-studio')}
-              onOpenWardrobe={() => setActiveTab('wardrobe')}
-            />
 
             {/* Featured Outfits Grid */}
             <section className="py-16 sm:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
@@ -608,7 +347,7 @@ export const App: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-                {products.slice(0, 3).map((prod) => (
+                {products.slice(0, 6).map((prod) => (
                   <ProductCard
                     key={prod.id}
                     product={prod}
@@ -616,17 +355,10 @@ export const App: React.FC = () => {
                     onAddToCart={(p, s) => handleAddToCart(p, s || 'M')}
                     onToggleWishlist={handleToggleWishlist}
                     isWishlisted={wishlistIds.includes(prod.id)}
-                    recommendedSize={userFitSize}
                   />
                 ))}
               </div>
             </section>
-
-            {/* Outfits In Motion (Video Reels of Drape & Movement) */}
-            <OutfitsInMotion />
-
-            {/* Upcoming Collection Waitlist */}
-            <UpcomingCollectionSection />
           </main>
         )}
 
@@ -639,81 +371,23 @@ export const App: React.FC = () => {
               onAddToCart={(p, s) => handleAddToCart(p, s || 'M')}
               onToggleWishlist={handleToggleWishlist}
               wishlistIds={wishlistIds}
-              userFitSize={userFitSize}
               initialCategory="All"
             />
           </main>
         )}
 
-        {/* VIEW 3: Shop by Fit */}
-        {activeTab === 'shop-by-fit' && (
-          <main className="space-y-6">
-            <div className="bg-beige/30 py-8 px-4 text-center border-b border-beige-border space-y-2">
-              <span className="text-xs uppercase tracking-widest text-burgundy font-semibold">
-                Proportion Engineered
-              </span>
-              <h2 className="font-serif text-3xl sm:text-4xl font-medium text-charcoal">
-                Shop by Inseam & Fit
-              </h2>
-              <p className="text-xs sm:text-sm text-charcoal-muted max-w-lg mx-auto">
-                Bespoke silhouettes calibrated for Petite (under 5'3"), Regular, and Tall lengths with zero-bust gaping guarantees.
-              </p>
-            </div>
-
-            <ProductCatalogueView
-              products={products}
-              onSelectProduct={(p) => setSelectedProduct(p)}
-              onAddToCart={(p, s) => handleAddToCart(p, s || 'M')}
-              onToggleWishlist={handleToggleWishlist}
-              wishlistIds={wishlistIds}
-              userFitSize={userFitSize}
-              initialCategory="Co-ord Set"
-            />
-          </main>
-        )}
-
-        {/* VIEW 4: AI Style Studio */}
-        {activeTab === 'style-studio' && (
-          <main>
-            <StyleStudioView
-              products={products}
-              onSelectProduct={(p) => setSelectedProduct(p)}
-              onAddToCart={(p, s) => handleAddToCart(p, s || 'M')}
-              onToggleWishlist={handleToggleWishlist}
-              wishlistIds={wishlistIds}
-              userFitSize={userFitSize}
-            />
-          </main>
-        )}
-
-        {/* VIEW 5: My TARVEQ Wardrobe */}
-        {activeTab === 'wardrobe' && (
-          <main>
-            <DigitalWardrobeView
-              user={currentUser}
-              vaultItems={vaultItems}
-              products={products}
-              onAddNewVaultItem={handleAddNewVaultItem}
-              onDeleteVaultItem={handleDeleteVaultItem}
-              onAddToCart={(p, s) => handleAddToCart(p, s || 'M')}
-              onOrderCapsule={handleOrderCapsule}
-              userFitSize={userFitSize}
-            />
-          </main>
-        )}
-
-        {/* VIEW 6: New Arrivals (Drop 01) */}
+        {/* VIEW 3: New Arrivals */}
         {activeTab === 'new-arrivals' && (
           <main>
             <div className="bg-burgundy-light/40 py-8 px-4 text-center border-b border-burgundy-border/30 space-y-2">
               <span className="text-xs uppercase tracking-widest text-burgundy font-semibold">
-                Limited Atelier Batch
+                Limited Batch
               </span>
               <h2 className="font-serif text-3xl sm:text-4xl font-medium text-charcoal">
-                Drop 01: Start of the Bloom
+                Drop 01: Debut Collection
               </h2>
               <p className="text-xs sm:text-sm text-charcoal-muted max-w-lg mx-auto">
-                Handcrafted breathable cambric, zero-sheer double poplins, and drape-calibrated linen co-ords.
+                Handcrafted luxury cambrics, double poplins, and breathable linen co-ords.
               </p>
             </div>
 
@@ -723,20 +397,19 @@ export const App: React.FC = () => {
               onAddToCart={(p, s) => handleAddToCart(p, s || 'M')}
               onToggleWishlist={handleToggleWishlist}
               wishlistIds={wishlistIds}
-              userFitSize={userFitSize}
               initialCategory="All"
             />
           </main>
         )}
 
-        {/* VIEW 7: Customer Orders History */}
+        {/* VIEW 4: Customer Orders History */}
         {activeTab === 'orders' && (
           <main className="max-w-4xl mx-auto px-4 sm:px-6 py-12 space-y-6">
             <div className="flex items-center justify-between pb-4 border-b border-beige-border">
               <div>
                 <h2 className="font-serif text-3xl font-medium text-charcoal">My Orders</h2>
                 <p className="text-xs text-charcoal-muted mt-0.5">
-                  Live dispatch updates and Shiprocket tracking for your bespoke orders
+                  Direct WhatsApp confirmed orders and fulfillment status
                 </p>
               </div>
               <span className="bg-sage-light text-sage text-xs font-semibold px-3 py-1 rounded-full">
@@ -749,7 +422,7 @@ export const App: React.FC = () => {
                 <Package className="w-10 h-10 text-charcoal-muted mx-auto" />
                 <h3 className="font-serif text-xl font-medium text-charcoal">No orders placed yet</h3>
                 <p className="text-xs text-charcoal-muted max-w-sm mx-auto">
-                  Explore our collection or pair an item you already own in your digital wardrobe to experience custom modest tailoring.
+                  Browse our collection and place your first order directly via WhatsApp.
                 </p>
                 <button
                   onClick={() => setActiveTab('shop-all')}
@@ -765,7 +438,7 @@ export const App: React.FC = () => {
                     <div className="flex items-center justify-between text-xs">
                       <div>
                         <span className="font-mono font-bold text-charcoal text-sm">{ord.id}</span>
-                        <p className="text-[11px] text-charcoal-muted">Paid via Razorpay Secure</p>
+                        <p className="text-[11px] text-charcoal-muted">Payment: {ord.payment_method || 'COD / WhatsApp'}</p>
                       </div>
                       <span className="bg-sage-light text-sage text-xs font-medium px-3 py-1 rounded-full flex items-center space-x-1.5">
                         <Truck className="w-3.5 h-3.5" />
@@ -779,7 +452,7 @@ export const App: React.FC = () => {
                           <div>
                             <p className="font-serif font-medium text-charcoal text-sm">{it.name}</p>
                             <p className="text-[11px] text-charcoal-muted">
-                              Size: {it.size || 'M'} • Inseam: {it.length || 'Regular'}
+                              Size: {it.size || 'M'} • Qty: {it.quantity || 1}
                             </p>
                           </div>
                           <span className="font-serif font-medium text-charcoal">
@@ -791,25 +464,26 @@ export const App: React.FC = () => {
 
                     <div className="pt-3 border-t border-beige-border flex items-center justify-between text-xs">
                       <div>
-                        <span className="text-charcoal-muted text-[10px] uppercase">Total Paid</span>
+                        <span className="text-charcoal-muted text-[10px] uppercase">Order Total</span>
                         <p className="font-serif text-lg font-medium text-charcoal">
                           ₹{ord.total_amount?.toLocaleString('en-IN')}
                         </p>
                       </div>
 
-                      <button
-                        onClick={() => setSelectedOrderForTracking(ord)}
-                        className="bg-[#F8F4EC] hover:bg-beige text-charcoal font-medium text-xs px-4 py-2 rounded-xl border border-gold transition flex items-center space-x-1.5 shadow-sm"
-                      >
-                        <Truck className="w-3.5 h-3.5 text-burgundy" />
-                        <span>Track Live AWB</span>
-                      </button>
+                      <span className="text-gold font-medium text-xs">
+                        Status: {ord.payment_status}
+                      </span>
                     </div>
                   </div>
                 ))}
               </div>
             )}
           </main>
+        )}
+
+        {/* VIEW 5: AI Roadmap & Models Architecture */}
+        {activeTab === 'ai-roadmap' && (
+          <AiRoadmapView onBackToStore={() => setActiveTab('home')} />
         )}
 
       </div>
@@ -826,58 +500,19 @@ export const App: React.FC = () => {
       </a>
 
       {/* 3. Footer */}
-      <Footer
-        onNavClick={setActiveTab}
-        onOpenFitFinder={() => setIsFitFinderOpen(true)}
-        onOpenColourStudio={() => setIsColourStudioOpen(true)}
-        onOpenStyleStudio={() => setActiveTab('style-studio')}
-        onOpenWardrobe={() => setActiveTab('wardrobe')}
-        onToggleInvestorDrawer={() => setIsInvestorDrawerOpen(true)}
-      />
+      <Footer onNavClick={setActiveTab} />
 
-      {/* ======================================================== */}
-      {/* 4. MODALS & DRAWERS */}
-      {/* ======================================================== */}
-
-      {/* Product Detail Modal */}
+      {/* 4. Modals & Drawers */}
       <ProductDetailModal
         product={selectedProduct}
         user={currentUser}
         onClose={() => setSelectedProduct(null)}
-        onAddToCart={(p, size, length, coverage) => {
-          handleAddToCart(p, size, length, coverage);
-        }}
+        onAddToCart={(p, size) => handleAddToCart(p, size)}
         onDirectBuy={handleDirectBuy}
         onToggleWishlist={handleToggleWishlist}
         isWishlisted={selectedProduct ? wishlistIds.includes(selectedProduct.id) : false}
-        onOpenFitFinder={() => {
-          setSelectedProduct(null);
-          setIsFitFinderOpen(true);
-        }}
-        recommendedSize={userFitSize}
       />
 
-      {/* Fit Finder Modal */}
-      <FitFinderModal
-        isOpen={isFitFinderOpen}
-        onClose={() => setIsFitFinderOpen(false)}
-        onSaveProfile={handleSaveFitProfile}
-        user={currentUser}
-        products={products}
-        onSelectProduct={(p) => setSelectedProduct(p)}
-      />
-
-      {/* Colour Studio Modal */}
-      <ColourStudioModal
-        isOpen={isColourStudioOpen}
-        onClose={() => setIsColourStudioOpen(false)}
-        onSavePalette={handleSavePalette}
-        user={currentUser}
-        products={products}
-        onSelectProduct={(p) => setSelectedProduct(p)}
-      />
-
-      {/* Shopping Cart Drawer */}
       <CartDrawer
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
@@ -887,20 +522,18 @@ export const App: React.FC = () => {
         onProceedToCheckout={handleProceedCartCheckout}
       />
 
-      {/* Wishlist Drawer */}
       <WishlistDrawer
         isOpen={isWishlistOpen}
         onClose={() => setIsWishlistOpen(false)}
         wishlistProducts={wishlistProducts}
         onRemoveFromWishlist={handleToggleWishlist}
         onMoveToCart={(p) => {
-          handleAddToCart(p, userFitSize || 'M');
+          handleAddToCart(p, 'M');
           handleToggleWishlist(p);
         }}
         onViewProduct={(p) => setSelectedProduct(p)}
       />
 
-      {/* Live Search Modal */}
       <SearchModal
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
@@ -908,54 +541,20 @@ export const App: React.FC = () => {
         onSelectProduct={(p) => setSelectedProduct(p)}
       />
 
-      {/* Customer Profile / Account Modal */}
       <UserProfileModal
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
         user={currentUser}
         orders={orders}
         onLogout={handleLogout}
-        onOpenFitFinder={() => {
-          setIsProfileOpen(false);
-          setIsFitFinderOpen(true);
-        }}
-        onOpenColourStudio={() => {
-          setIsProfileOpen(false);
-          setIsColourStudioOpen(true);
-        }}
-        onTrackOrder={(ord) => setSelectedOrderForTracking(ord)}
       />
 
-      {/* Auth Modal (Sign in / Register) */}
       <AuthModal
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
         onLoginSuccess={handleLoginSuccess}
       />
 
-      {/* Razorpay Checkout & Payment Simulator Modal */}
-      <RazorpayModal
-        isOpen={isRazorpayOpen}
-        onClose={() => setIsRazorpayOpen(false)}
-        order={activeRazorpayOrder}
-        onPaymentSuccess={handlePaymentSuccess}
-        user={currentUser}
-      />
-
-      {/* Order Placement Success Modal */}
-      <OrderSuccessModal
-        isOpen={isSuccessOpen}
-        onClose={() => setIsSuccessOpen(false)}
-        order={latestOrder}
-        onTrackOrder={() => {
-          setIsSuccessOpen(false);
-          if (latestOrder) {
-            setSelectedOrderForTracking(latestOrder);
-          }
-        }}
-      />
-
-      {/* Dedicated WhatsApp-First Checkout Modal */}
       <CheckoutPage
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
@@ -964,7 +563,6 @@ export const App: React.FC = () => {
         onOrderCreated={handleOrderCreated}
       />
 
-      {/* WhatsApp Click-to-Chat Order Confirmation Modal */}
       <WhatsAppOrderConfirmationModal
         isOpen={isWhatsAppConfirmationOpen}
         onClose={() => setIsWhatsAppConfirmationOpen(false)}
@@ -973,18 +571,36 @@ export const App: React.FC = () => {
         onTrackOrders={() => setActiveTab('orders')}
       />
 
-      {/* Order Tracking Modal */}
-      <OrderTrackingModal
-        isOpen={!!selectedOrderForTracking}
-        onClose={() => setSelectedOrderForTracking(null)}
-        order={selectedOrderForTracking}
+      {/* AI Suite: Edge Vision Scanner, Wardrobe Vault & Stylist Chatbot */}
+      <EdgeStyleDnaScannerModal
+        isOpen={isStyleDnaOpen}
+        onClose={() => setIsStyleDnaOpen(false)}
+        token={token}
+        onScanComplete={(updatedUser) => {
+          setCurrentUser(updatedUser);
+          showToast('Style DNA Calibrated Permanently!');
+        }}
       />
 
-      {/* Investor Metrics & Pitch Drawer (Discrete, accessed via footer link) */}
-      <InvestorDrawer
-        isOpen={isInvestorDrawerOpen}
-        onClose={() => setIsInvestorDrawerOpen(false)}
+      <WardrobeVaultDrawer
+        isOpen={isWardrobeVaultOpen}
+        onClose={() => setIsWardrobeVaultOpen(false)}
+        token={token}
+        onSelectProduct={(prod) => {
+          setSelectedProduct(prod);
+          setIsWardrobeVaultOpen(false);
+        }}
+      />
+
+      <StylistChatDrawer
         user={currentUser}
+        token={token}
+        isOpen={isStylistChatOpen}
+        onOpen={() => setIsStylistChatOpen(true)}
+        onClose={() => setIsStylistChatOpen(false)}
+        onOpenStyleDnaScanner={() => setIsStyleDnaOpen(true)}
+        onOpenWardrobeVault={() => setIsWardrobeVaultOpen(true)}
+        onSelectProduct={(prod) => setSelectedProduct(prod)}
       />
 
     </div>

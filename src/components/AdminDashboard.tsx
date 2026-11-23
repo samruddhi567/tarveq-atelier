@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Package, DollarSign, TrendingUp, Users, Plus, Upload, Save, Truck,
-  Download, ArrowLeft, RefreshCw, CheckCircle2, AlertCircle, FileText, Printer, Check
+  Download, ArrowLeft, RefreshCw, CheckCircle2, AlertCircle, FileText, Printer, Check, Sparkles
 } from 'lucide-react';
 import { Order, Product, InventoryMatrix } from '../types';
 
@@ -50,6 +50,37 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToStore, t
   const [selectedOrderDetails, setSelectedOrderDetails] = useState<Order | null>(null);
   const [adminNotes, setAdminNotes] = useState('');
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [isGeneratingCopy, setIsGeneratingCopy] = useState(false);
+
+  const handleAutoGenerateCopy = async () => {
+    setIsGeneratingCopy(true);
+    try {
+      const res = await fetch('/api/admin/generate-copy', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: newName,
+          category: newCategory,
+          fabric_spec: newFabricSpec,
+          fabric_opacity: newFabricOpacity,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.copy) {
+        setNewTagline(data.copy.tagline);
+        setNewDescription(data.copy.description);
+        setNewModestyRating(String(data.copy.modestyRating));
+        showNotification('✨ AI Editorial Copy & Modesty Ratings Generated!');
+      }
+    } catch (err) {
+      console.error('Error generating AI copy:', err);
+    } finally {
+      setIsGeneratingCopy(false);
+    }
+  };
 
   const showNotification = (msg: string) => {
     setNotification(msg);
@@ -196,7 +227,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToStore, t
     }
   };
 
-  // Generate Shiprocket Shipment & AWB
+  // Generate Order Shipment & AWB
   const handleGenerateShipment = async (orderId: string) => {
     try {
       const res = await fetch(`/api/admin/orders/${orderId}/generate-awb`, {
@@ -245,10 +276,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToStore, t
                 <img src="/images/tarveq-crest.png" alt="TARVEQ" className="h-6 w-auto object-contain brightness-125" />
                 <span className="font-serif text-lg font-bold text-white tracking-wide">TARVEQ Operations OS</span>
                 <span className="bg-burgundy text-white text-[9px] uppercase font-bold px-1.5 py-0.5 rounded">
-                  Founder Admin
+                  Co-Founders: Samruddhi & Vikash
                 </span>
               </div>
-              <p className="text-[10px] text-sand-light/70">Stock, Multi-Photo Upload, Orders & Shiprocket Fulfillment</p>
+              <p className="text-[10px] text-sand-light/70">Stock, Multi-Photo Upload, Orders & Atelier Dispatch</p>
             </div>
           </div>
 
@@ -318,7 +349,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToStore, t
             }`}
           >
             <Truck className="w-4 h-4 text-sky-400" />
-            <span>Shiprocket Dispatch & AWB</span>
+            <span>Order Dispatch & Tracking</span>
           </button>
         </div>
       </header>
@@ -519,7 +550,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToStore, t
                                 <option value="Pending Confirmation">Pending Confirmation</option>
                                 <option value="Confirmed">Confirmed</option>
                                 <option value="Processing">Processing</option>
-                                <option value="Shipped via Shiprocket">Shipped</option>
+                                <option value="Shipped">Shipped</option>
                                 <option value="Delivered">Delivered</option>
                                 <option value="Cancelled">Cancelled</option>
                               </select>
@@ -820,12 +851,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToStore, t
               </div>
 
               <div>
-                <label className="block font-bold text-espresso uppercase tracking-wider mb-1">Description</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block font-bold text-espresso uppercase tracking-wider">Description</label>
+                  <button
+                    type="button"
+                    onClick={handleAutoGenerateCopy}
+                    disabled={isGeneratingCopy}
+                    className="text-[11px] font-semibold text-terracotta hover:text-terracotta-hover flex items-center space-x-1 transition disabled:opacity-50"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-gold" />
+                    <span>{isGeneratingCopy ? 'Generating with LangChain...' : '✨ Auto-Generate Editorial Copy & Tags'}</span>
+                  </button>
+                </div>
                 <textarea
                   rows={3}
                   value={newDescription}
                   onChange={(e) => setNewDescription(e.target.value)}
-                  className="w-full px-3 py-2 bg-sand-light border border-sand-border rounded-xl text-espresso focus:outline-none"
+                  className="w-full px-3 py-2 bg-sand-light border border-sand-border rounded-xl text-espresso focus:outline-none text-xs"
                 ></textarea>
               </div>
 
@@ -974,24 +1016,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToStore, t
         )}
 
         {/* =========================================================
-            TAB 4: SHIPROCKET DISPATCH & FULFILLMENT
+            TAB 4: ATELIER DISPATCH & FULFILLMENT
             ========================================================= */}
         {activeTab === 'dispatch' && (
           <div className="bg-white rounded-3xl border border-sand-border p-6 shadow-soft-luxe space-y-5">
             <div className="border-b border-sand-border pb-3">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-sky-600">Shiprocket Ready Logistics</span>
-              <h2 className="font-serif text-2xl font-bold text-espresso">Dispatch & AWB Generator</h2>
-              <p className="text-xs text-espresso-soft mt-0.5">Automated courier partner assignment (Delhivery / BlueDart / Xpressbees)</p>
+              <span className="text-[10px] uppercase font-bold tracking-wider text-terracotta">Atelier Logistics & Fulfillment</span>
+              <h2 className="font-serif text-2xl font-bold text-espresso">Order Dispatch & Tracking Generator</h2>
+              <p className="text-xs text-espresso-soft mt-0.5">Assign courier dispatch tracking code and update order fulfillment</p>
             </div>
 
             <div className="space-y-3">
-              {orders.filter((o) => o.payment_status === 'Paid').map((o) => (
+              {orders.filter((o) => o.fulfillment_status !== 'Cancelled').map((o) => (
                 <div key={o.id} className="p-4 rounded-2xl border border-sand-border bg-sand-light flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                   <div>
                     <div className="flex items-center space-x-2">
                       <span className="font-mono font-bold text-espresso text-sm">{o.id}</span>
                       <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                        Paid (Razorpay)
+                        {o.payment_method || 'WhatsApp'}: {o.payment_status}
                       </span>
                     </div>
                     <p className="text-espresso mt-1">
@@ -1049,7 +1091,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToStore, t
             </div>
             <div className="font-mono text-xs space-y-3">
               <div className="p-3 bg-slate-50 border rounded-lg">
-                <p className="font-bold">AURA ATELIER D2C PVT LTD</p>
+                <p className="font-bold">TARVEQ ATELIER</p>
                 <p>Order: {selectedOrderForInvoice.id}</p>
                 <p>Courier: {selectedOrderForInvoice.courier_partner || 'Delhivery Express'}</p>
                 <p>AWB: {selectedOrderForInvoice.awb_tracking_code || 'Pending'}</p>

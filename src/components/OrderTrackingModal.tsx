@@ -73,9 +73,9 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({ order, o
             <div className="bg-white p-5 rounded-2xl border border-sand-border space-y-4 text-xs font-mono">
               <div className="border-b border-sand-border pb-3 flex justify-between items-start">
                 <div>
-                  <h3 className="font-serif text-base font-bold text-espresso">AURA ATELIER D2C PVT LTD</h3>
+                  <h3 className="font-serif text-base font-bold text-espresso">TARVEQ ATELIER</h3>
                   <p className="text-[10px] text-espresso-soft">GSTIN: 29AABCA1234F1Z5 | HSN: 6204</p>
-                  <p className="text-[10px] text-espresso-soft">Indiranagar 100ft Road, Bengaluru, Karnataka 560038</p>
+                  <p className="text-[10px] text-espresso-soft">Rajpur Road, Dehradun, Uttarakhand 248001</p>
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-espresso">ORIGINAL TAX INVOICE</p>
@@ -130,7 +130,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({ order, o
                   </div>
                 )}
                 <div className="flex justify-between font-bold text-sm text-espresso pt-1 border-t border-sand-border">
-                  <span>Total Paid (Razorpay Verified)</span>
+                  <span>Total Paid</span>
                   <span>₹{order.total_amount?.toLocaleString('en-IN')}</span>
                 </div>
               </div>

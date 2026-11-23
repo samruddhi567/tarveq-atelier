@@ -279,7 +279,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                         required
                         value={street}
                         onChange={(e) => setStreet(e.target.value)}
-                        placeholder="e.g. 100ft Road, Indiranagar"
+                        placeholder="e.g. Rajpur Road, Clock Tower"
                         className="w-full px-3.5 py-2.5 bg-[#F8F4EC]/40 border border-beige-border rounded-xl text-xs text-charcoal focus:outline-none focus:border-burgundy"
                       />
                     </div>
@@ -295,7 +295,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                         required
                         value={city}
                         onChange={(e) => setCity(e.target.value)}
-                        placeholder="Bengaluru"
+                        placeholder="Dehradun"
                         className="w-full px-3.5 py-2.5 bg-[#F8F4EC]/40 border border-beige-border rounded-xl text-xs text-charcoal focus:outline-none focus:border-burgundy"
                       />
                     </div>
@@ -309,7 +309,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                         required
                         value={state}
                         onChange={(e) => setState(e.target.value)}
-                        placeholder="Karnataka"
+                        placeholder="Uttarakhand"
                         className="w-full px-3.5 py-2.5 bg-[#F8F4EC]/40 border border-beige-border rounded-xl text-xs text-charcoal focus:outline-none focus:border-burgundy"
                       />
                     </div>
