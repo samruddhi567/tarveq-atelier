@@ -71,22 +71,40 @@ export const WhatsAppOrderConfirmationModal: React.FC<WhatsAppOrderConfirmationM
           {/* Important Instruction Notice */}
           <div className="bg-gold-light border-2 border-gold/50 rounded-2xl p-4 space-y-2">
             <div className="flex items-center space-x-2 text-charcoal font-semibold text-xs sm:text-sm">
-              <span className="text-gold text-lg">⚠️</span>
-              <span>Final Step to Confirm Your Order:</span>
+              <span className="text-gold text-lg">🚚</span>
+              <span>All Delivery Details Shared on WhatsApp:</span>
             </div>
             <p className="text-xs text-charcoal leading-relaxed font-sans">
-              To complete your order request, please send the prepared order message to <strong>both TARVEQ WhatsApp contacts</strong> below. Clicking each button opens WhatsApp with your prefilled order summary—simply press <strong>Send</strong>!
+              Your delivery details, selected outfits, and order total will be shared directly with our two official atelier numbers: <strong>+91 9307859693</strong> and <strong>+91 8809271583</strong> for fast doorstep dispatch!
             </p>
           </div>
 
           {/* TWO DEDICATED WHATSAPP BUTTONS */}
           <div className="space-y-3.5">
             
+            {/* Quick Action: Send to Both */}
+            <button
+              type="button"
+              onClick={() => {
+                window.open(whatsAppUrls.admin1Url, '_blank');
+                setTimeout(() => {
+                  window.open(whatsAppUrls.admin2Url, '_blank');
+                }, 800);
+                setAdmin1Sent(true);
+                setAdmin2Sent(true);
+              }}
+              className="w-full py-3.5 px-5 rounded-2xl text-xs sm:text-sm font-bold bg-[#128C7E] hover:bg-[#075E54] text-white transition flex items-center justify-center space-x-2 shadow-md border border-white/20"
+            >
+              <MessageCircle className="w-5 h-5 fill-current" />
+              <span>Send to Both WhatsApp Numbers (9307859693 & 8809271583)</span>
+              <ExternalLink className="w-3.5 h-3.5 ml-1 opacity-80" />
+            </button>
+
             {/* Button 1: Admin 1 */}
             <div className="bg-white p-4 rounded-2xl border border-beige-border space-y-2 shadow-sm">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-charcoal">TARVEQ Business Contact – Admin 1</span>
-                <span className="text-charcoal-muted font-mono">+91 93078 59693</span>
+                <span className="font-semibold text-charcoal">TARVEQ Helpline 1</span>
+                <span className="text-charcoal-muted font-mono font-bold">+91 93078 59693</span>
               </div>
 
               <a
@@ -102,7 +120,7 @@ export const WhatsAppOrderConfirmationModal: React.FC<WhatsAppOrderConfirmationM
               >
                 <MessageCircle className="w-5 h-5 fill-current" />
                 <span>
-                  {admin1Sent ? '✓ Sent to Admin 1 (+91 9307859693)' : '1. Send Order to TARVEQ – Admin 1'}
+                  {admin1Sent ? '✓ Sent to 9307859693' : '1. Share Delivery Details with 9307859693'}
                 </span>
                 <ExternalLink className="w-3.5 h-3.5 ml-1 opacity-80" />
               </a>
@@ -111,8 +129,8 @@ export const WhatsAppOrderConfirmationModal: React.FC<WhatsAppOrderConfirmationM
             {/* Button 2: Admin 2 */}
             <div className="bg-white p-4 rounded-2xl border border-beige-border space-y-2 shadow-sm">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-charcoal">TARVEQ Business Contact – Admin 2</span>
-                <span className="text-charcoal-muted font-mono">+91 88092 71583</span>
+                <span className="font-semibold text-charcoal">TARVEQ Helpline 2</span>
+                <span className="text-charcoal-muted font-mono font-bold">+91 88092 71583</span>
               </div>
 
               <a
@@ -128,7 +146,7 @@ export const WhatsAppOrderConfirmationModal: React.FC<WhatsAppOrderConfirmationM
               >
                 <MessageCircle className="w-5 h-5 fill-current" />
                 <span>
-                  {admin2Sent ? '✓ Sent to Admin 2 (+91 8809271583)' : '2. Send Order to TARVEQ – Admin 2'}
+                  {admin2Sent ? '✓ Sent to 8809271583' : '2. Share Delivery Details with 8809271583'}
                 </span>
                 <ExternalLink className="w-3.5 h-3.5 ml-1 opacity-80" />
               </a>
@@ -160,7 +178,17 @@ export const WhatsAppOrderConfirmationModal: React.FC<WhatsAppOrderConfirmationM
                 <strong className="text-charcoal">Customer:</strong> {order.customer_name} ({order.customer_phone})
               </p>
               <p>
-                <strong className="text-charcoal">Delivery to:</strong> {order.shipping_address?.street}, {order.shipping_address?.city} ({order.shipping_address?.pincode})
+                <strong className="text-charcoal">Delivery to:</strong>{' '}
+                {[
+                  order.shipping_address?.houseNo,
+                  order.shipping_address?.street,
+                  order.shipping_address?.city,
+                  order.shipping_address?.state,
+                  order.shipping_address?.pincode,
+                  order.shipping_address?.landmark ? `(Landmark: ${order.shipping_address.landmark})` : null,
+                ]
+                  .filter(Boolean)
+                  .join(', ')}
               </p>
               <p>
                 <strong className="text-charcoal">Payment Method:</strong> {order.payment_method} • <span className="text-gold font-medium">Status: {order.payment_status}</span>

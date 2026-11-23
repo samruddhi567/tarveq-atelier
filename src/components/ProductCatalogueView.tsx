@@ -121,8 +121,6 @@ export const ProductCatalogueView: React.FC<ProductCatalogueViewProps> = ({
         <div>
           <div className="inline-flex items-center space-x-1.5 text-xs uppercase tracking-widest text-burgundy font-medium mb-1">
             <span>Atelier Collection</span>
-            <span>•</span>
-            <span>Drop 01</span>
           </div>
           <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-medium text-charcoal">
             The Complete Collection

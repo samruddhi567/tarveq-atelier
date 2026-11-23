@@ -330,7 +330,7 @@ export const App: React.FC = () => {
                   <div className="inline-flex items-center space-x-1.5 text-xs uppercase tracking-widest text-burgundy font-medium mb-1">
                     <span>Curated Outfits</span>
                     <span>•</span>
-                    <span>Drop 01</span>
+                    <span>Signature Collection</span>
                   </div>
                   <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-medium text-charcoal">
                     Atelier Highlights
@@ -384,7 +384,7 @@ export const App: React.FC = () => {
                 Limited Batch
               </span>
               <h2 className="font-serif text-3xl sm:text-4xl font-medium text-charcoal">
-                Drop 01: Debut Collection
+                Signature Atelier Collection
               </h2>
               <p className="text-xs sm:text-sm text-charcoal-muted max-w-lg mx-auto">
                 Handcrafted luxury cambrics, double poplins, and breathable linen co-ords.

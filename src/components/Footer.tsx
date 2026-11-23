@@ -176,7 +176,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavClick }) => {
                   onClick={() => onNavClick('new-arrivals')}
                   className="hover:text-white transition"
                 >
-                  New Arrivals (Drop 01)
+                  New Arrivals
                 </button>
               </li>
               <li>

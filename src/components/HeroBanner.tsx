@@ -41,12 +41,12 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
           <h1
             className="font-serif font-semibold text-burgundy leading-none select-none"
             style={{
-              fontSize: 'clamp(3rem, 10vw, 7.5rem)',
-              letterSpacing: '-0.01em',
+              fontSize: 'clamp(2.5rem, 8vw, 6.5rem)',
+              letterSpacing: '0.04em',
               textShadow: '0 2px 24px rgba(124,48,49,0.10)',
             }}
           >
-            DROP 01
+            TARVEQ ATELIER
           </h1>
         </div>
 
