@@ -536,10 +536,10 @@ function seedData() {
         fabric_opacity: '100% Zero-Sheer Guaranteed (Lab Verified)',
         modesty_rating: 9.8,
         coverage_type: 'Full Coverage',
-        image_url: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=80',
+        image_url: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=900&q=80',
         gallery: JSON.stringify([
-          'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=80',
-          'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=900&q=80'
+          'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=900&q=80',
+          'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=80'
         ]),
         description: 'Engineered for tropical Indian climates with non-transparent high-count cambric weave. Features relaxed high side-slits, extended cuff wrists, and anti-crease drape suited for warm to olive undertones.',
         fit_specs: JSON.stringify({

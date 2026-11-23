@@ -80,6 +80,7 @@ export const StylistChatDrawer: React.FC<StylistChatDrawerProps> = ({
         body: JSON.stringify({
           message: text.trim(),
           userId: user?.id || 'user-customer-demo',
+          userUndertone: user?.style_dna?.undertone,
         }),
       });
 
@@ -112,8 +113,10 @@ export const StylistChatDrawer: React.FC<StylistChatDrawerProps> = ({
   };
 
   const starterChips = [
-    'What colors glow on my skin tone?',
-    'Pair something with my Wardrobe Vault',
+    'Recommend for Cool / Fair skin tone',
+    'Recommend for Olive / Neutral skin tone',
+    'Recommend for Deep / Dusky skin tone',
+    'Recommend for Warm / Wheatish skin tone',
     'Which outfit is best for hot campus weather?',
     'How do custom lengths & returns work?',
   ];

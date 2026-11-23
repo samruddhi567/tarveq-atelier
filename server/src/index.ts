@@ -673,12 +673,12 @@ app.post('/api/stylist-chat', async (req: Request, res: Response) => {
       } catch {}
     }
 
-    const { message, sessionId = `session-${userId}` } = req.body;
+    const { message, sessionId = `session-${userId}`, userUndertone } = req.body;
     if (!message || message.trim().length === 0) {
       return res.status(400).json({ error: 'Message cannot be empty' });
     }
 
-    const chatResponse = await handleStylistChat(sessionId, message.trim(), userId);
+    const chatResponse = await handleStylistChat(sessionId, message.trim(), userId, userUndertone);
 
     // If recommended product IDs were returned, enrich with product details from SQLite
     let recommendedProducts: any[] = [];
@@ -935,7 +935,17 @@ app.put('/api/admin/orders/:id/status', requireAdmin, (req: AuthRequest, res: Re
 app.get('/api/orders', (req: Request, res: Response) => {
   try {
     const userId = (req.query.userId as string) || 'user-customer-demo';
-    const orders = db.prepare('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC').all(userId) as any[];
+    const phone = req.query.phone as string;
+    let orders: any[] = [];
+
+    if (phone && phone.trim()) {
+      const cleanPhone = phone.replace(/\D/g, '');
+      orders = db.prepare('SELECT * FROM orders WHERE customer_phone LIKE ? OR user_id = ? ORDER BY created_at DESC').all(`%${cleanPhone}%`, userId) as any[];
+    } else if (userId === 'user-customer-demo') {
+      orders = db.prepare('SELECT * FROM orders ORDER BY created_at DESC LIMIT 50').all() as any[];
+    } else {
+      orders = db.prepare('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC').all(userId) as any[];
+    }
 
     const parsed = orders.map((o) => ({
       ...o,

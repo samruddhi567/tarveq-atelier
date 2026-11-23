@@ -21,7 +21,8 @@ export interface StylistChatResponse {
 export async function handleStylistChat(
   sessionId: string,
   userMessage: string,
-  userId: string = 'user-customer-demo'
+  userId: string = 'user-customer-demo',
+  userUndertoneParam?: string
 ): Promise<StylistChatResponse> {
   // 1. Fetch User Style DNA & Wardrobe Vault from SQLite
   const userRow = db.prepare('SELECT * FROM users WHERE id = ?').get(userId) as any;
@@ -50,8 +51,19 @@ export async function handleStylistChat(
   history.push({ role: 'user', content: userMessage });
   if (history.length > 8) history.splice(0, history.length - 8);
 
-  // 5. System Prompt Context Assembly
-  const undertone = styleDna.undertone || 'Warm Golden';
+  // 5. Detect Undertone from message content, parameter, or database
+  let detectedUndertone = userUndertoneParam || styleDna.undertone;
+  if (lowerMsg.includes('cool') || lowerMsg.includes('rosy') || lowerMsg.includes('pink') || lowerMsg.includes('fair') || lowerMsg.includes('pale')) {
+    detectedUndertone = 'Cool Rosy';
+  } else if (lowerMsg.includes('olive') || lowerMsg.includes('green') || lowerMsg.includes('neutral')) {
+    detectedUndertone = 'Olive Neutral';
+  } else if (lowerMsg.includes('deep') || lowerMsg.includes('espresso') || lowerMsg.includes('dusky') || lowerMsg.includes('dark') || lowerMsg.includes('melanin')) {
+    detectedUndertone = 'Deep Espresso';
+  } else if (lowerMsg.includes('warm') || lowerMsg.includes('golden') || lowerMsg.includes('wheatish')) {
+    detectedUndertone = 'Warm Golden';
+  }
+
+  const undertone = detectedUndertone || 'Olive Neutral';
   const build = styleDna.build_proportion || 'Regular Modest';
   const vaultSummary = vaultRows.map((v) => `${v.color_name} ${v.item_name} (${v.category})`).join(', ') || 'No owned items pinned yet';
   const catalogSummary = products.map((p) => `[ID: ${p.id}] ${p.name} (₹${p.price}, ${p.category}, ${p.fabric_spec})`).join('\n');
@@ -121,11 +133,50 @@ function generateRuleBasedChatReply(
 ): StylistChatResponse {
   const lower = msg.toLowerCase();
 
-  if (lower.includes('color') || lower.includes('skin') || lower.includes('tone') || lower.includes('glow')) {
-    const recommended = products.find((p) => p.id.includes('terracotta') || p.id.includes('ivory')) || products[0];
+  // 1. Skin undertone & Color recommendations (Specific to skin type)
+  if (
+    lower.includes('color') ||
+    lower.includes('skin') ||
+    lower.includes('tone') ||
+    lower.includes('glow') ||
+    lower.includes('outfit') ||
+    lower.includes('recommend') ||
+    lower.includes('wear') ||
+    lower.includes('suit')
+  ) {
+    if (undertone === 'Cool Rosy' || lower.includes('cool') || lower.includes('fair') || lower.includes('rosy') || lower.includes('pink')) {
+      const coord = products.find((p) => p.id === 'prod-charcoal-structured-coord') || products[0];
+      const shirt = products.find((p) => p.id === 'prod-ivory-double-layer-shirt') || products[1];
+      return {
+        reply_text: `For **Cool Rosy & Fair** skin tones, crisp high-contrast tones and cool mineral hues bring out your radiant glow! We recommend our **Charcoal Structured Campus Co-ord** and **Ivory Double-Layered Poplin Shirt**. Avoid mustard yellows or warm ochre, as they tend to clash with cool undertones!`,
+        recommended_product_ids: [coord.id, shirt.id],
+      };
+    }
+
+    if (undertone === 'Olive Neutral' || lower.includes('olive') || lower.includes('neutral')) {
+      const tunic = products.find((p) => p.id === 'prod-sage-olive-linen') || products[0];
+      const trousers = products.find((p) => p.id === 'prod-cinnamon-relaxed-trousers') || products[1];
+      return {
+        reply_text: `For **Olive Neutral** skin tones, botanical greens, Tuscan sage, and muted warm spices naturally complement the subtle greenish-golden balance of your skin. Our **Sage Olive Modest Linen Tunic & Trousers** and **Cinnamon Relaxed-Fit Trousers** will make you look effortlessly poised!`,
+        recommended_product_ids: [tunic.id, trousers.id],
+      };
+    }
+
+    if (undertone === 'Deep Espresso' || lower.includes('deep') || lower.includes('dusky') || lower.includes('dark')) {
+      const tee = products.find((p) => p.id === 'prod-deep-espresso-tee') || products[0];
+      const shirt = products.find((p) => p.id === 'prod-ivory-double-layer-shirt') || products[1];
+      return {
+        reply_text: `For **Deep Espresso & Dusky** complexions, rich velvety chocolates, burnished earth tones, and high-contrast ivory make your melanin depth pop with royalty! We recommend our **Deep Espresso 240 GSM Heavyweight Tee** and **Ivory Double-Layered Shirt**. Avoid muddy pastel beiges!`,
+        recommended_product_ids: [tee.id, shirt.id],
+      };
+    }
+
+    // Warm Golden / Wheatish
+    const trousers = products.find((p) => p.id === 'prod-cinnamon-relaxed-trousers') || products[0];
+    const cambric = products.find((p) => p.id === 'prod-terracotta-cambric') || products[1];
     return {
-      reply_text: `With your **${undertone}** undertone, earthy tones like Spiced Terracotta, Warm Lotus Cream, and Banarasi Olive will naturally illuminate your complexion without washing you out. Avoid harsh cool blues—warm mineral pigments create a rich, radiant harmony!`,
-      recommended_product_ids: recommended ? [recommended.id] : [],
+      reply_text: `For **Warm Golden & Wheatish** complexions, sun-drenched rusts, terracotta, and warm cinnamon balance your golden pigmentation with sunlit radiance. We recommend our **Cinnamon Relaxed-Fit Trousers** and **Terracotta Breathable Cambric Co-ord Set**!`,
+      recommended_product_ids: [trousers.id, cambric.id],
     };
   }
 

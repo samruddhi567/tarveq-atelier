@@ -3,7 +3,7 @@ import { AnnouncementBar } from './AnnouncementBar';
 import { Search, Heart, User as UserIcon, ShoppingBag, Menu, X, MapPin, ChevronRight, Sparkles, Shirt } from 'lucide-react';
 import { User as UserType } from '../types';
 
-export type ActiveNavTab = 'home' | 'shop-all' | 'new-arrivals' | 'orders' | 'ai-roadmap';
+export type ActiveNavTab = 'home' | 'shop-all' | 'new-arrivals' | 'orders';
 
 interface HeaderProps {
   user: UserType | null;
@@ -152,21 +152,6 @@ export const Header: React.FC<HeaderProps> = ({
             >
               My Orders
               {activeTab === 'orders' && (
-                <span className="absolute bottom-0 left-0 w-full h-[2px] bg-burgundy rounded-full" />
-              )}
-            </button>
-
-            <button
-              onClick={() => handleNavClick('ai-roadmap')}
-              className={`transition py-1 relative flex items-center space-x-1 ${
-                activeTab === 'ai-roadmap'
-                  ? 'text-burgundy font-semibold'
-                  : 'hover:text-burgundy text-charcoal'
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5 text-gold" />
-              <span>AI Roadmap</span>
-              {activeTab === 'ai-roadmap' && (
                 <span className="absolute bottom-0 left-0 w-full h-[2px] bg-burgundy rounded-full" />
               )}
             </button>
@@ -331,19 +316,6 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               <span>My Orders</span>
-              <ChevronRight className="w-4 h-4 text-charcoal-muted" />
-            </button>
-
-            <button
-              onClick={() => handleNavClick('ai-roadmap')}
-              className={`flex items-center justify-between text-left py-2 border-b border-beige/60 ${
-                activeTab === 'ai-roadmap' ? 'text-burgundy font-bold' : ''
-              }`}
-            >
-              <div className="flex items-center space-x-2">
-                <Sparkles className="w-4 h-4 text-gold" />
-                <span>AI Roadmap & Models</span>
-              </div>
               <ChevronRight className="w-4 h-4 text-charcoal-muted" />
             </button>
 

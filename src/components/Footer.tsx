@@ -187,14 +187,6 @@ export const Footer: React.FC<FooterProps> = ({ onNavClick }) => {
                   Track My Orders
                 </button>
               </li>
-              <li>
-                <button
-                  onClick={() => onNavClick('ai-roadmap')}
-                  className="hover:text-gold transition text-gold/90 flex items-center space-x-1"
-                >
-                  <span>✨ AI Roadmap & Models</span>
-                </button>
-              </li>
             </ul>
           </div>
 
