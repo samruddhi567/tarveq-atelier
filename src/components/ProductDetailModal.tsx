@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Heart, ShoppingBag, ArrowRight, Check, Sparkles } from 'lucide-react';
+import { X, Heart, ShoppingBag, ArrowRight, Check, Sparkles, Zap, Lock } from 'lucide-react';
 import { Product, User } from '../types';
 
 interface ProductDetailModalProps {
@@ -177,7 +177,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             <div className="flex gap-3">
               <button
                 onClick={handleAddToCart}
-                className="flex-1 py-3 px-4 rounded-full border border-burgundy text-burgundy font-medium text-xs sm:text-sm hover:bg-burgundy-light/30 transition flex items-center justify-center gap-2"
+                className="flex-1 py-3 px-4 rounded-full border-2 border-burgundy text-burgundy font-semibold text-xs sm:text-sm hover:bg-burgundy hover:text-white transition-all flex items-center justify-center gap-2 shadow-sm"
               >
                 {addedToast ? <Check className="w-4 h-4 text-sage" /> : <ShoppingBag className="w-4 h-4" />}
                 <span>{addedToast ? 'Added to Bag!' : 'Add to Bag'}</span>
@@ -196,13 +196,33 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               </button>
             </div>
 
+            {/* Direct Buy Now Button - Placed directly below Add to Bag */}
             <button
               onClick={handleBuyNow}
-              className="w-full py-3.5 px-6 rounded-full bg-burgundy hover:bg-burgundy-hover text-white font-medium text-xs sm:text-sm transition shadow-md flex items-center justify-center gap-2"
+              className="w-full py-3.5 px-6 rounded-full bg-[#7C3031] hover:bg-[#632324] text-white font-bold text-xs sm:text-sm transition-all shadow-md flex items-center justify-center gap-2 border border-gold/40 hover:scale-[1.01] active:scale-[0.99]"
             >
-              <span>Order via WhatsApp</span>
+              <Zap className="w-4 h-4 text-gold fill-current" />
+              <span className="tracking-wider uppercase">⚡ Buy Now — Instant Checkout</span>
               <ArrowRight className="w-4 h-4" />
             </button>
+
+            {/* Payment Gateway Trust Indicators */}
+            <div className="pt-2 text-center space-y-1">
+              <div className="flex flex-wrap items-center justify-center gap-1.5 text-[11px] text-charcoal">
+                <span className="font-semibold flex items-center gap-1 text-burgundy">
+                  <Lock className="w-3 h-3 text-burgundy" /> Payment Gateway:
+                </span>
+                <span className="bg-white/90 px-2 py-0.5 rounded border border-beige-border text-charcoal font-medium">UPI</span>
+                <span className="bg-white/90 px-2 py-0.5 rounded border border-beige-border text-charcoal font-medium">Cards</span>
+                <span className="bg-white/90 px-2 py-0.5 rounded border border-beige-border text-charcoal font-medium">NetBanking</span>
+                <span className="bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded border border-emerald-300">
+                  COD via WhatsApp
+                </span>
+              </div>
+              <p className="text-[10px] text-charcoal-muted">
+                COD orders are shared directly with admins (+91 9307859693 & +91 8809271583)
+              </p>
+            </div>
           </div>
 
         </div>

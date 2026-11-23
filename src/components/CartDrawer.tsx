@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Trash2, ShoppingBag, ArrowRight, ShieldCheck, Truck } from 'lucide-react';
+import { X, Trash2, ShoppingBag, ArrowRight, ShieldCheck, Truck, Lock } from 'lucide-react';
 import { Product } from '../types';
 
 export interface CartItem {
@@ -189,11 +189,22 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
               <button
                 onClick={onProceedToCheckout}
-                className="bg-burgundy hover:bg-burgundy-hover text-white font-sans text-xs sm:text-sm font-medium py-3 px-6 rounded-full transition shadow-md flex items-center space-x-2 border border-gold/30"
+                className="bg-burgundy hover:bg-burgundy-hover text-white font-sans text-xs sm:text-sm font-semibold py-3 px-5 rounded-full transition shadow-md flex items-center space-x-2 border border-gold/30 hover:scale-[1.02] active:scale-[0.98]"
               >
-                <span>Proceed to Checkout</span>
+                <span>Proceed to Payment Gateway</span>
                 <ArrowRight className="w-4 h-4 text-gold" />
               </button>
+            </div>
+
+            {/* Payment Gateway Trust Badge */}
+            <div className="bg-white/90 p-2.5 rounded-xl border border-beige-border text-center space-y-1">
+              <div className="flex items-center justify-center space-x-1.5 text-[11px] text-charcoal font-semibold">
+                <Lock className="w-3.5 h-3.5 text-burgundy" />
+                <span>Verified TARVEQ Payment Gateway</span>
+              </div>
+              <p className="text-[10px] text-charcoal-muted">
+                UPI Instant • Credit/Debit Cards • NetBanking • Cash on Delivery (COD via WhatsApp to 9307859693 & 8809271583)
+              </p>
             </div>
           </div>
         )}

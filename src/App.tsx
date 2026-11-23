@@ -143,7 +143,8 @@ export const App: React.FC = () => {
       }
       return [...prev, { product, size, length: 'Regular', coverage: 'Standard', quantity: 1 }];
     });
-    showToast(`Added ${product.name} (${size}) to your Bag.`);
+    showToast(`Added ${product.name} (${size}) to your Shopping Bag.`);
+    setIsCartOpen(true);
   };
 
   const handleUpdateCartQuantity = (idx: number, newQty: number) => {
@@ -353,6 +354,7 @@ export const App: React.FC = () => {
                     product={prod}
                     onSelect={(p) => setSelectedProduct(p)}
                     onAddToCart={(p, s) => handleAddToCart(p, s || 'M')}
+                    onBuyNow={(p, s) => handleDirectBuy(p, { size: s || 'M' })}
                     onToggleWishlist={handleToggleWishlist}
                     isWishlisted={wishlistIds.includes(prod.id)}
                   />
@@ -369,6 +371,7 @@ export const App: React.FC = () => {
               products={products}
               onSelectProduct={(p) => setSelectedProduct(p)}
               onAddToCart={(p, s) => handleAddToCart(p, s || 'M')}
+              onBuyNow={(p, s) => handleDirectBuy(p, { size: s || 'M' })}
               onToggleWishlist={handleToggleWishlist}
               wishlistIds={wishlistIds}
               initialCategory="All"
@@ -395,6 +398,7 @@ export const App: React.FC = () => {
               products={products}
               onSelectProduct={(p) => setSelectedProduct(p)}
               onAddToCart={(p, s) => handleAddToCart(p, s || 'M')}
+              onBuyNow={(p, s) => handleDirectBuy(p, { size: s || 'M' })}
               onToggleWishlist={handleToggleWishlist}
               wishlistIds={wishlistIds}
               initialCategory="All"

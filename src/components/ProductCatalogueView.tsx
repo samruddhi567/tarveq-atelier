@@ -7,6 +7,7 @@ interface ProductCatalogueViewProps {
   products: Product[];
   onSelectProduct: (product: Product) => void;
   onAddToCart: (product: Product, size?: string) => void;
+  onBuyNow?: (product: Product, size?: string) => void;
   onToggleWishlist: (product: Product) => void;
   wishlistIds: string[];
   userFitSize?: string | null;
@@ -17,6 +18,7 @@ export const ProductCatalogueView: React.FC<ProductCatalogueViewProps> = ({
   products,
   onSelectProduct,
   onAddToCart,
+  onBuyNow,
   onToggleWishlist,
   wishlistIds,
   userFitSize,
@@ -283,6 +285,7 @@ export const ProductCatalogueView: React.FC<ProductCatalogueViewProps> = ({
               product={product}
               onSelect={onSelectProduct}
               onAddToCart={onAddToCart}
+              onBuyNow={onBuyNow}
               onToggleWishlist={onToggleWishlist}
               isWishlisted={wishlistIds.includes(product.id)}
               recommendedSize={userFitSize}

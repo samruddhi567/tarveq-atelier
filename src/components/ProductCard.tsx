@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Heart, Eye, ShoppingBag, Check, X } from 'lucide-react';
+import { Heart, Eye, ShoppingBag, Check, X, Zap } from 'lucide-react';
 import { Product } from '../types';
 
 interface ProductCardProps {
   product: Product;
   onSelect: (product: Product) => void;
   onAddToCart: (product: Product, size?: string) => void;
+  onBuyNow?: (product: Product, size?: string) => void;
   onToggleWishlist: (product: Product) => void;
   isWishlisted: boolean;
   recommendedSize?: string | null;
@@ -15,6 +16,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   product,
   onSelect,
   onAddToCart,
+  onBuyNow,
   onToggleWishlist,
   isWishlisted,
   recommendedSize,
@@ -150,7 +152,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               <p className="text-[10px] text-sage font-sans font-medium">Free Shipping Across India</p>
             </div>
 
-            {/* Add to Cart / Sold Out Button */}
+            {/* Add to Cart / Sold Out / Buy Now Button */}
             {isSoldOut ? (
               <button
                 onClick={() => onSelect(product)}
@@ -159,21 +161,36 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 Sold Out
               </button>
             ) : !showSizePicker ? (
-              <button
-                onClick={handleAddToBagClick}
-                className="bg-burgundy hover:bg-burgundy-hover text-white text-xs sm:text-[13px] font-sans font-medium px-3.5 py-2 rounded-full transition flex items-center space-x-1.5 shadow-sm border border-gold/30"
-                title="Add to Shopping Bag"
-              >
-                <ShoppingBag className="w-3.5 h-3.5 text-gold" />
-                <span>Add to Bag</span>
-              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={handleAddToBagClick}
+                  className="bg-white hover:bg-beige-light text-burgundy border border-burgundy text-xs font-sans font-semibold px-3 py-2 rounded-full transition flex items-center space-x-1 shadow-sm"
+                  title="Add to Shopping Bag"
+                >
+                  <ShoppingBag className="w-3.5 h-3.5" />
+                  <span>Add to Bag</span>
+                </button>
+                {onBuyNow && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onBuyNow(product, selectedSize);
+                    }}
+                    className="bg-[#7C3031] hover:bg-[#632324] text-white text-xs font-sans font-bold px-3 py-2 rounded-full transition flex items-center space-x-1 shadow-sm border border-gold/40"
+                    title="Buy Now with Instant Payment Gateway"
+                  >
+                    <Zap className="w-3 h-3 text-gold fill-current" />
+                    <span>Buy Now</span>
+                  </button>
+                )}
+              </div>
             ) : null}
           </div>
 
           {/* ── Inline Size Picker (shown when user clicks "Add to Bag") ── */}
           {showSizePicker && !isSoldOut && (
             <div
-              className="bg-white/90 border border-gold/30 rounded-2xl px-3 py-3 space-y-2 shadow-md"
+              className="bg-white/95 border border-gold/30 rounded-2xl px-3 py-3 space-y-2.5 shadow-md"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between">
@@ -207,14 +224,29 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 ))}
               </div>
 
-              {/* Confirm button */}
-              <button
-                onClick={handleConfirmSize}
-                className="w-full bg-burgundy hover:bg-burgundy-hover text-white text-[13px] font-sans font-medium py-2 rounded-full transition flex items-center justify-center space-x-2 border border-gold/30 shadow-sm"
-              >
-                <ShoppingBag className="w-3.5 h-3.5 text-gold" />
-                <span>Add to Bag — Size {selectedSize}</span>
-              </button>
+              {/* Confirm / Action buttons: Add to Bag and Buy Now */}
+              <div className="flex gap-2 pt-1">
+                <button
+                  onClick={handleConfirmSize}
+                  className="flex-1 bg-white hover:bg-beige-light text-burgundy border border-burgundy text-[12px] font-sans font-semibold py-2 rounded-full transition flex items-center justify-center space-x-1 shadow-sm"
+                >
+                  <ShoppingBag className="w-3.5 h-3.5" />
+                  <span>Add to Bag</span>
+                </button>
+                {onBuyNow && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowSizePicker(false);
+                      onBuyNow(product, selectedSize);
+                    }}
+                    className="flex-1 bg-[#7C3031] hover:bg-[#632324] text-white text-[12px] font-sans font-bold py-2 rounded-full transition flex items-center justify-center space-x-1 shadow-sm border border-gold/40"
+                  >
+                    <Zap className="w-3 h-3 text-gold fill-current" />
+                    <span>Buy Now</span>
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </div>
